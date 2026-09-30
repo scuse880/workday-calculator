@@ -1,0 +1,655 @@
+﻿{
+  "books": [
+    {
+      "file": "\uadfc\ubb34\uc0c1\ud669\ubaa9\ub85d.xlsx",
+      "bytes": 22105,
+      "sheets": [
+        {
+          "title": "\uadfc\ubb34\uc0c1\ud669\ubaa9\ub85d",
+          "max_row": 296,
+          "max_column": 12,
+          "nonempty": 3319,
+          "merged_ranges": 2,
+          "hidden": "visible"
+        }
+      ]
+    },
+    {
+      "file": "\ucd08\uacfc\uadfc\ubb34 \uc6d4\ubcc4\uc9d1\uacc4(\uc0dd\ub144\uc6d4\uc77c \ubbf8\ud45c\uc2dc).xlsx",
+      "bytes": 10391,
+      "sheets": [
+        {
+          "title": "sheet1",
+          "max_row": 97,
+          "max_column": 19,
+          "nonempty": 604,
+          "merged_ranges": 0,
+          "hidden": "visible"
+        }
+      ]
+    },
+    {
+      "file": "\ucd08\uacfc\uadfc\ubb34 \uc6d4\ubcc4\uc9d1\uacc4(\uc0dd\ub144\uc6d4\uc77c \ud45c\uc2dc).xlsx",
+      "bytes": 10768,
+      "sheets": [
+        {
+          "title": "sheet1",
+          "max_row": 97,
+          "max_column": 19,
+          "nonempty": 604,
+          "merged_ranges": 0,
+          "hidden": "visible"
+        }
+      ]
+    },
+    {
+      "file": "\ucd9c\uc7a5 \uadfc\ubb34\uc0c1\ud669\ubd80 \uac1c\uc778\ubcc4.xlsx",
+      "bytes": 40119,
+      "sheets": [
+        {
+          "title": "sheet1",
+          "max_row": 535,
+          "max_column": 19,
+          "nonempty": 3232,
+          "merged_ranges": 0,
+          "hidden": "visible"
+        }
+      ]
+    },
+    {
+      "file": "\uadfc\ubb34\uc77c\uc218\uacc4\uc0b0.xlsm",
+      "bytes": 198273,
+      "sheets": [
+        {
+          "title": "\uc791\uc5c5",
+          "max_row": 22,
+          "max_column": 10,
+          "nonempty": 20,
+          "merged_ranges": 1,
+          "hidden": "visible"
+        },
+        {
+          "title": "\uc0ac\uc6a9\ubc29\ubc95 \ubc0f \uc8fc\uc758\uc0ac\ud56d",
+          "max_row": 2,
+          "max_column": 2,
+          "nonempty": 1,
+          "merged_ranges": 0,
+          "hidden": "visible"
+        },
+        {
+          "title": "\ubc29\ud559\uc911\uadfc\ubb34",
+          "max_row": 200,
+          "max_column": 4,
+          "nonempty": 53,
+          "merged_ranges": 1,
+          "hidden": "visible"
+        },
+        {
+          "title": "\uc791\uc5c5\uacb0\uacfc",
+          "max_row": 84,
+          "max_column": 33,
+          "nonempty": 864,
+          "merged_ranges": 0,
+          "hidden": "visible"
+        },
+        {
+          "title": "\uc124\uc815",
+          "max_row": 160,
+          "max_column": 6,
+          "nonempty": 132,
+          "merged_ranges": 0,
+          "hidden": "visible"
+        },
+        {
+          "title": "\uacf5\ud734\uc77c",
+          "max_row": 2,
+          "max_column": 3,
+          "nonempty": 5,
+          "merged_ranges": 0,
+          "hidden": "visible"
+        }
+      ]
+    }
+  ],
+  "overtime": [
+    {
+      "file": "\ucd08\uacfc\uadfc\ubb34 \uc6d4\ubcc4\uc9d1\uacc4(\uc0dd\ub144\uc6d4\uc77c \ud45c\uc2dc).xlsx",
+      "employee_cells": 77,
+      "unique_names": 76,
+      "birthdate_count": 77,
+      "duplicate_name_groups": 1,
+      "duplicate_name_people": 2,
+      "duplicate_name_missing_birth_count": 0,
+      "duplicate_name_identical_birth_group_count": 0,
+      "invalid_parentheses_rows": [],
+      "gap_hops": 5,
+      "termination_rows": [
+        94,
+        97
+      ],
+      "row_range": [
+        5,
+        93
+      ]
+    },
+    {
+      "file": "\ucd08\uacfc\uadfc\ubb34 \uc6d4\ubcc4\uc9d1\uacc4(\uc0dd\ub144\uc6d4\uc77c \ubbf8\ud45c\uc2dc).xlsx",
+      "employee_cells": 77,
+      "unique_names": 76,
+      "birthdate_count": 0,
+      "duplicate_name_groups": 1,
+      "duplicate_name_people": 2,
+      "duplicate_name_missing_birth_count": 2,
+      "duplicate_name_identical_birth_group_count": 1,
+      "invalid_parentheses_rows": [],
+      "gap_hops": 5,
+      "termination_rows": [
+        94,
+        97
+      ],
+      "row_range": [
+        5,
+        93
+      ]
+    }
+  ],
+  "work_status": {
+    "rows": 294,
+    "stop_row": 296,
+    "newline_id_rows": 294,
+    "skip_reason_rows": 55,
+    "period_tilde_counts": {
+      "1": 294
+    },
+    "cell_value_kinds": {
+      "str": 294
+    },
+    "first_last_rows": [
+      2,
+      295
+    ],
+    "eligible_rows": 239,
+    "matching_employee_rows": 207,
+    "nonmatching_employee_rows": 32,
+    "duplicate_name_rows": 7,
+    "duplicate_name_distinct_id_count": 3,
+    "duplicate_name_id_shape_counts": {
+      "true": 7
+    },
+    "period_year_month_counts": {
+      "2026-08": 159,
+      "2026-07": 48
+    }
+  },
+  "trip": {
+    "target_rows": 1,
+    "first_last_rows": [
+      5,
+      5
+    ],
+    "stop_row": 10,
+    "skipped_rows": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "masked_name_rows": 0,
+    "start_kinds": {
+      "str": 1
+    },
+    "end_kinds": {
+      "str": 1
+    },
+    "malformed_masked_rows": [],
+    "all_target_rows_count": 134,
+    "later_target_rows_count": 133,
+    "first_later_target_rows": [
+      12,
+      19,
+      21,
+      23,
+      25,
+      27,
+      29,
+      31,
+      38,
+      40,
+      42,
+      49,
+      51,
+      53,
+      55,
+      57,
+      59,
+      61,
+      63,
+      65
+    ],
+    "last_target_row": 531,
+    "max_non_target_gap_between_targets": 6,
+    "non_target_gap_distribution": {
+      "6": 52,
+      "1": 81
+    },
+    "masked_all_target_count": 2,
+    "all_target_start_kinds": {
+      "str": 134
+    },
+    "all_target_end_kinds": {
+      "str": 134
+    },
+    "remaining_nonempty_after_last_target": 0,
+    "matching_employee_rows": 110,
+    "nonmatching_employee_rows": 24,
+    "modal_rows_by_known_employee": 2,
+    "record_start_year_month_counts": {
+      "2026.08": 134
+    },
+    "first_45_row_shapes": [
+      {
+        "row": 5,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 6,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 7,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 8,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 9,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": true,
+        "target": false
+      },
+      {
+        "row": 10,
+        "b": true,
+        "c": true,
+        "d": false,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 11,
+        "b": false,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 12,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 13,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 14,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 15,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 16,
+        "b": true,
+        "c": true,
+        "d": false,
+        "c_type": "str",
+        "c_has_grade": true,
+        "target": false
+      },
+      {
+        "row": 17,
+        "b": true,
+        "c": true,
+        "d": false,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 18,
+        "b": false,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 19,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 20,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 21,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 22,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 23,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 24,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 25,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 26,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 27,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 28,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 29,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 30,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 31,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 32,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 33,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 34,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 35,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": true,
+        "target": false
+      },
+      {
+        "row": 36,
+        "b": true,
+        "c": true,
+        "d": false,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 37,
+        "b": false,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 38,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 39,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 40,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 41,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 42,
+        "b": true,
+        "c": true,
+        "d": true,
+        "c_type": "str",
+        "c_has_grade": false,
+        "target": true
+      },
+      {
+        "row": 43,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 44,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      },
+      {
+        "row": 45,
+        "b": false,
+        "c": false,
+        "d": false,
+        "c_type": "blank",
+        "c_has_grade": false,
+        "target": false
+      }
+    ]
+  },
+  "actual_xlsm": {
+    "base_settings": {
+      "B3": "2026\ub144",
+      "D3": "08\uc6d4",
+      "B5": "08",
+      "D5": "30",
+      "B6": "16",
+      "D6": "30"
+    },
+    "vacation_rows": 12,
+    "vacation_stop_row": 15,
+    "vacation_value_kinds": {
+      "date": {
+        "datetime": 12
+      },
+      "start": {
+        "time": 12
+      },
+      "end": {
+        "time": 12
+      }
+    },
+    "vacation_birthdate_rows": 0,
+    "vacation_first_last_rows": [
+      3,
+      14
+    ],
+    "vacation_matching_employee_rows": 12,
+    "vacation_nonmatching_employee_rows": 0,
+    "vacation_date_year_month_counts": {
+      "2026-08": 12
+    }
+  }
+}

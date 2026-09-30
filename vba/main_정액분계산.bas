@@ -1,451 +1,424 @@
-Attribute VB_Name = "main_Á¤¾×ºĞ°è»ê"
+Attribute VB_Name = "main_ì •ì•¡ë¶„ê³„ì‚°"
 Option Explicit
 
-' ÇöÀç Ã³¸® ÁßÀÎ ¼¿(¿ä±¸»çÇ×´ë·Î global)
-Private gX As Range
+' ê²°ê³¼: 1=ê·¼ë¬´ì¼, 0=ê·¼ë¬´ì¼ ì•„ë‹˜, -1=íŒì • ë³´ë¥˜. íœ´ì¼ì€ íŒì • ìì²´ë¥¼ í•˜ì§€ ì•ŠëŠ”ë‹¤.
+Public Sub ì •ì•¡ë¶„ê³„ì‚°()
+    ê·¼ë¬´ì¼ìˆ˜ê³„ì‚°
+End Sub
 
-' ½Ã°£ ¿ªÀü ¿À·ù ´©Àû¿ë(Áßº¹ Á¦°Å)
-' key: Sheet!A1|08:30~07:30
-' val: Ç¥½Ã ¹®ÀÚ¿­
-Private gTimeReverse As Object  ' Scripting.Dictionary (late binding)
-
-'========================================================
-' get_times(X)
-' X °ª: hh:mm~hh:mm [whitespace] hh:mm~hh:mm ... (¹İº¹)
-' 1) °¢ ±¸°£À» (text, color, diffMin, startMin, endMin)·Î ¼öÁı
-' 2) °°Àº color ³»¿¡¼­ °ãÄ¡´Â ±¸°£Àº merge
-' 3) ½Ã°£ ¿ªÀü ¿À·ù´Â Áï½Ã Áß´ÜÇÏÁö ¾Ê°í ´©Àû
-' 4) timesColl(Collection) ¹İÈ¯
-'========================================================
-Public Function get_times(ByVal srcCell As Range) As Collection
-    Dim timesColl As New Collection
-
-    Dim s As String
-    s = CStr(srcCell.Value2)
-    If Len(Trim$(s)) = 0 Then
-        Set get_times = timesColl
-        Exit Function
+Public Sub ê·¼ë¬´ì¼ìˆ˜ê³„ì‚°()
+    Dim workMonth As Date, arrivalMinutes As Long, departureMinutes As Long
+    Dim holidays As Object, saved As Boolean, employees As Collection, employee As CEmployee
+    Dim dailyResults As Object, result As Variant, x As Variant, y As Variant, z As Variant
+    Dim decision As Variant, outputValues() As Variant, outputColors() As Long
+    Dim dayValue As Date, numberOfDays As Long, i As Long, d As Long, total As Long
+    Dim pendingPeople As Long, pendingDays As Long, personPending As Boolean
+    Dim cellTextValue As String, rowName As String, group As Collection
+    Dim oldScreenUpdating As Boolean, screenChanged As Boolean
+    On Error GoTo Failed
+    ReadBaseSettings workMonth, arrivalMinutes, departureMinutes
+    RequireEmployeeState workMonth
+    If Not gWorkStatusLoaded Then RaiseValidation "ê·¼ë¬´ì¼ìˆ˜ ê³„ì‚°", "ê·¼ë¬´ìƒí™©ëª©ë¡ì„ ë¨¼ì € ë¶ˆëŸ¬ì˜¤ì„¸ìš”."
+    If Not gTripLoaded Then RaiseValidation "ê·¼ë¬´ì¼ìˆ˜ ê³„ì‚°", "ì¶œì¥ ê·¼ë¬´ìƒí™©ë¶€ë¥¼ ë¨¼ì € ë¶ˆëŸ¬ì˜¤ì„¸ìš”."
+    Set holidays = LoadHolidays(workMonth, saved)
+    If Not saved Then
+        RaiseValidation "ê·¼ë¬´ì¼ìˆ˜ ê³„ì‚°", "í˜„ì¬ ì‘ì—…ë…„ì›”ì˜ ê³µíœ´ì¼ì„ í™•ì¸í•œ í›„ ì €ì¥ ë° ë‹«ê¸°ë¥¼ ëˆŒëŸ¬ì£¼ì„¸ìš”."
     End If
-
-    Dim re As Object, matches As Object, m As Object
-    Set re = CreateObject("VBScript.RegExp")
-    re.Global = True
-    re.IgnoreCase = True
-    re.Pattern = "(\d{1,2}:\d{2})~(\d{1,2}:\d{2})"
-
-    Set matches = re.Execute(s)
-    If matches.Count = 0 Then
-        Set get_times = timesColl
-        Exit Function
-    End If
-
-    ' color(Long) -> Collection(Array(startMin, endMin))
-    Dim byColor As Object
-    Set byColor = CreateObject("Scripting.Dictionary")
-
-    For Each m In matches
-        Dim stStr As String, enStr As String
-        stStr = m.SubMatches(0)
-        enStr = m.SubMatches(1)
-
-        Dim stMin As Long, enMin As Long
-        stMin = TimeStrToMin(stStr)
-        enMin = TimeStrToMin(enStr)
-
-        ' ½Ã°£ ¿ªÀü ¿À·ù´Â ´©Àû¸¸ ÇÏ°í ÀÌ ±¸°£Àº °Ç³Ê¶Ü
-        If enMin < stMin Then
-            AddTimeReverseError srcCell, stStr, enStr
-            GoTo NextMatch
-        End If
-
-        ' ¸®Ä¡ÅØ½ºÆ® »ö: ÇØ´ç ±¸°£ Ã¹ ±ÛÀÚÀÇ »öÀ¸·Î ÆÇ´Ü
-        Dim startPos As Long
-        startPos = CLng(m.FirstIndex) + 1 ' Characters´Â 1-based
-
-        Dim col As Long
-        col = srcCell.Characters(startPos, 1).Font.color
-
-        If Not byColor.Exists(col) Then byColor.Add col, New Collection
-        byColor(col).Add Array(stMin, enMin)
-
-NextMatch:
-    Next m
-
-    ' °°Àº color ³» °ãÄ¡´Â ±¸°£ merge ÈÄ timesColl »ı¼º
-    Dim key As Variant
-    For Each key In byColor.Keys
-        Dim merged As Collection
-        Set merged = MergeIntervals(byColor(key))
-
-        Dim j As Long
-        For j = 1 To merged.Count
-            Dim it As Variant
-            it = merged(j) ' Array(stMin, endMin)
-
-            Dim txt As String
-            txt = MinToTimeStr(CLng(it(0))) & "~" & MinToTimeStr(CLng(it(1)))
-
-            Dim diff As Long
-            diff = CLng(it(1)) - CLng(it(0))
-
-            ' (text, color, diffMin, startMin, endMin)
-            timesColl.Add Array(txt, CLng(key), diff, CLng(it(0)), CLng(it(1)))
-        Next j
-    Next key
-
-    Set get_times = timesColl
-End Function
-
-'========================================================
-' calc_Á¤¾×ºĞ(timesColl)  [¿ä±¸ ·ÎÁ÷ ¹İ¿µ]
-' 1) ÁÖ¸»(Çì´õ°¡ Åä/ÀÏ)ÀÌ¸é continue
-' 2) ºó ¼¿ÀÌ¸é ³ë¶õ ÇÏÀÌ¶óÀÌÆ®
-' 3) vbBlue¸¸ -> continue
-' 4) vbRed¸¸ -> ³ë¶õ
-' 5) vbMagenta¸¸ -> ³ë¶õ
-' 6) vbBlue+vbMagenta & blue=08:30~16:30:
-'    - magenta ÇÕ=480 -> ³ë¶õ
-'    - magenta ÇÕ<480 -> continue
-' 7) vbBlue+vbRed & blue=08:30~16:30:
-'    - red ÇÕ=480 -> ³ë¶õ
-'    - red ÇÕ<480 -> continue
-' 8) ±× ¿Ü -> È¸»ö
-'========================================================
-Public Sub calc_Á¤¾×ºĞ(ByVal timesColl As Collection)
-    Dim ws As Worksheet
-    Set ws = gX.Worksheet
-
-    ' 1) ÁÖ¸»ÀÌ¸é continue (°°Àº ¿­ 1Çà Çì´õÀÇ ¿äÀÏ)
-    Dim headerCell As Range
-    Set headerCell = ws.Cells(1, gX.Column)
-
-    Dim wk As String
-    wk = ExtractWeekdayChar(headerCell)
-    If wk = "Åä" Or wk = "ÀÏ" Then Exit Sub
-
-    ' 2) ºó ¼¿ÀÌ¸é ³ë¶õ ÇÏÀÌ¶óÀÌÆ®
-    If Len(Trim$(CStr(gX.Value2))) = 0 Then
-        SetFill gX, vbYellow
-        Exit Sub
-    End If
-
-    ' ½Ã°£±¸°£ÀÌ ¾Æ¿¹ ¾øÀ¸¸é(Çü½Ä ºÒÀÏÄ¡/ÀüºÎ ¿ªÀü µî) -> 9¹ø(±× ¿Ü)·Î È¸»ö Ã³¸®
-    If (timesColl Is Nothing) Or (timesColl.Count = 0) Then
-        SetFill gX, RGB(200, 200, 200)
-        Exit Sub
-    End If
-
-    Dim colors As Object
-    Set colors = CreateObject("Scripting.Dictionary")
-
-    Dim blueHasFull As Boolean
-    blueHasFull = False
-
-    Dim redTotal As Long
-    redTotal = 0
-
-    Dim magentaTotal As Long
-    magentaTotal = 0
-
-    ' 8¹ø ±ÔÄ¢¿ë: blue/red ±¸°£ ¼öÁı
-    Dim blueIntervals As New Collection ' Array(stMin, enMin)
-    Dim redIntervals As New Collection  ' Array(stMin, enMin)
-
-    Dim i As Long
-    For i = 1 To timesColl.Count
-        Dim t As Variant
-        t = timesColl(i) ' Array(text, color, diff, startMin, endMin)
-
-        Dim col As Long
-        col = CLng(t(1))
-        If Not colors.Exists(col) Then colors.Add col, True
-
-        Dim stMin As Long, enMin As Long, diff As Long
-        stMin = CLng(t(3))
-        enMin = CLng(t(4))
-        diff = CLng(t(2))
-
-        If col = vbBlue Then
-            blueIntervals.Add Array(stMin, enMin)
-            If stMin = (8 * 60 + 30) And enMin = (16 * 60 + 30) Then
-                blueHasFull = True
-            End If
-        ElseIf col = vbMagenta Then
-            magentaTotal = magentaTotal + diff
-        ElseIf col = vbRed Then
-            redTotal = redTotal + diff
-            redIntervals.Add Array(stMin, enMin)
-        End If
-    Next i
-
-    ' 3) vbBlue¸¸ -> continue
-    If colors.Count = 1 And colors.Exists(vbBlue) Then Exit Sub
-
-    ' 4) vbRed¸¸ -> ³ë¶õ
-    If colors.Count = 1 And colors.Exists(vbRed) Then
-        SetFill gX, vbYellow
-        Exit Sub
-    End If
-
-    ' 5) vbMagenta¸¸ -> ³ë¶õ
-    If colors.Count = 1 And colors.Exists(vbMagenta) Then
-        SetFill gX, vbYellow
-        Exit Sub
-    End If
-
-    ' 6) vbBlue + vbMagenta
-    If colors.Count = 2 And colors.Exists(vbBlue) And colors.Exists(vbMagenta) Then
-        If blueHasFull Then
-            If magentaTotal = 480 Then
-                SetFill gX, vbYellow
-                Exit Sub
-            ElseIf magentaTotal < 480 Then
-                Exit Sub
-            End If
-        End If
-        SetFill gX, RGB(200, 200, 200)
-        Exit Sub
-    End If
-
-    ' 7) vbBlue + vbRed  (+ 8¹ø Ãß°¡ ±ÔÄ¢)
-    If colors.Count = 2 And colors.Exists(vbBlue) And colors.Exists(vbRed) Then
-
-        ' 7) blue=08:30~16:30ÀÌ¸é red ÇÕ°è·Î ÆÇÁ¤
-        If blueHasFull Then
-            If redTotal = 480 Then
-                SetFill gX, vbYellow
-                Exit Sub
-            ElseIf redTotal < 480 Then
-                Exit Sub
-            End If
-        End If
-
-        ' 8) blue/red°¡ ¼­·Î ¾È °ãÄ¡°í, µÑ ´Ù 08:30~16:30 ¹üÀ§ "¾È"ÀÌ¸é continue
-        Dim windowStart As Long, windowEnd As Long
-        windowStart = 8 * 60 + 30   ' 08:30
-        windowEnd = 16 * 60 + 30    ' 16:30
-
-        Dim withinOK As Boolean
-        withinOK = True
-
-        Dim b As Variant, r As Variant
-
-        ' blue ¹üÀ§ Ã¼Å©
-        For Each b In blueIntervals
-            If CLng(b(0)) < windowStart Or CLng(b(1)) > windowEnd Then
-                withinOK = False
-                Exit For
-            End If
-        Next b
-
-        ' red ¹üÀ§ Ã¼Å©
-        If withinOK Then
-            For Each r In redIntervals
-                If CLng(r(0)) < windowStart Or CLng(r(1)) > windowEnd Then
-                    withinOK = False
-                    Exit For
+    Set employees = GetEmployeesInOrder()
+    Set dailyResults = NewDictionary()
+    numberOfDays = Day(DateSerial(Year(workMonth), Month(workMonth) + 1, 0))
+    ReDim outputValues(1 To employees.Count + 1, 1 To numberOfDays + 2)
+    ReDim outputColors(1 To employees.Count, 1 To numberOfDays)
+    outputValues(1, 1) = Space$(22) & "ë‚ ì§œ" & vbLf & "ì„±ëª…"
+    outputValues(1, numberOfDays + 2) = "ê·¼ë¬´ì¼ìˆ˜"
+    For d = 1 To numberOfDays
+        dayValue = DateSerial(Year(workMonth), Month(workMonth), d)
+        outputValues(1, d + 1) = CStr(Month(dayValue)) & "/" & Right$("0" & CStr(Day(dayValue)), 2) & _
+                                 "(" & KoreanWeekday(dayValue) & ")"
+    Next d
+    ' ëª¨ë“  ê³„ì‚°ê³¼ í‘œì‹œë¬¸ìì—´ì„ ë¨¼ì € ì™„ì„±í•œë‹¤. ê³„ì‚° ì‹¤íŒ¨ ì‹œ ì´ì „ ì¶œë ¥ì€ ìœ ì§€ëœë‹¤.
+    For i = 1 To employees.Count
+        Set employee = employees(i)
+        Set group = gEmployeesByName(employee.Name)
+        rowName = employee.Name
+        If group.Count > 1 Then rowName = rowName & "(" & employee.Birthdate & ")"
+        outputValues(i + 1, 1) = rowName
+        total = 0
+        personPending = False
+        For d = 1 To numberOfDays
+            outputColors(i, d) = -1
+            dayValue = DateSerial(Year(workMonth), Month(workMonth), d)
+            If Weekday(dayValue, vbMonday) <= 5 And Not holidays.Exists(HolidayKey(dayValue)) _
+               And Not IsPersonnelChangeDay(employee, dayValue) Then
+                x = RecordDayIntervals(employee.WorkStatusRecords, "X", dayValue, arrivalMinutes, departureMinutes)
+                y = RecordDayIntervals(employee.TripRecords, "Y", dayValue, arrivalMinutes, departureMinutes)
+                If gVacationWorkLoaded Then
+                    z = RecordDayIntervals(employee.VacationWorkRecords, "Z", dayValue, arrivalMinutes, departureMinutes)
+                Else
+                    z = Empty
                 End If
-            Next r
-        End If
-
-        ' °ãÄ§ Ã¼Å©(³¡=½ÃÀÛÀº °ãÄ§ ¾Æ´Ô)
-        If withinOK Then
-            Dim overlap As Boolean
-            overlap = False
-
-            For Each b In blueIntervals
-                For Each r In redIntervals
-                    If Not (CLng(b(1)) <= CLng(r(0)) Or CLng(r(1)) <= CLng(b(0))) Then
-                        overlap = True
-                        Exit For
-                    End If
-                Next r
-                If overlap Then Exit For
-            Next b
-
-            If Not overlap Then Exit Sub ' 8¹ø ¸¸Á· -> continue
-        End If
-
-        ' 9) ±× ¿Ü -> È¸»ö
-        SetFill gX, RGB(200, 200, 200)
-        Exit Sub
-    End If
-
-    ' 9) ±× ¿Ü -> È¸»ö
-    SetFill gX, RGB(200, 200, 200)
-End Sub
-
-'========================================================
-' main_Á¤¾×ºĞ°è»ê
-' out!B2:AF80 Áö±×Àç±×(Çà ´ÜÀ§ ¿Õº¹) ¼øÈ¸
-'========================================================
-Public Sub main_Á¤¾×ºĞ°è»ê()
-    Dim ws As Worksheet
-    Dim rng As Range
-    Dim r As Long, c As Long
-    Dim r0 As Long, r1 As Long, c0 As Long, c1 As Long
-    Dim timesColl As Collection
-
-    Set ws = ThisWorkbook.Worksheets("out")
-    Set rng = ws.Range("B2:AF80")
-
-    r0 = rng.Row
-    r1 = rng.Row + rng.Rows.Count - 1
-    c0 = rng.Column
-    c1 = rng.Column + rng.Columns.Count - 1
-
-    Set gTimeReverse = CreateObject("Scripting.Dictionary")
-
+                decision = JudgeIntervals(x, y, z, arrivalMinutes, departureMinutes)
+                cellTextValue = DayResultText(x, y, z, CLng(decision(0)))
+                dailyResults.Add CStr(i) & ":" & CStr(d), Array(x, y, z, decision, cellTextValue)
+                If decision(0) = 1 Then total = total + 1
+                If decision(0) = -1 Then
+                    personPending = True
+                    pendingDays = pendingDays + 1
+                End If
+            End If
+        Next d
+        If personPending Then pendingPeople = pendingPeople + 1
+        outputValues(i + 1, numberOfDays + 2) = total
+    Next i
+    ' ì €ì¥í•œ íŒì • ê²°ê³¼ë¥¼ ê·¸ëŒ€ë¡œ ì‚¬ìš©í•œë‹¤. ì¶œë ¥ ë‹¨ê³„ì—ì„œ ì¬íŒì •í•˜ì§€ ì•ŠëŠ”ë‹¤.
+    For i = 1 To employees.Count
+        For d = 1 To numberOfDays
+            If dailyResults.Exists(CStr(i) & ":" & CStr(d)) Then
+                result = dailyResults(CStr(i) & ":" & CStr(d))
+                decision = result(3)
+                outputValues(i + 1, d + 1) = result(4)
+                outputColors(i, d) = CLng(decision(2))
+            End If
+        Next d
+    Next i
+    oldScreenUpdating = Application.ScreenUpdating
     Application.ScreenUpdating = False
-    Application.EnableEvents = False
-    On Error GoTo FIN
-
-    For r = r0 To r1
-        If ((r - r0) Mod 2) = 0 Then
-            For c = c0 To c1
-                Set gX = ws.Cells(r, c)
-                Set timesColl = get_times(gX)
-                calc_Á¤¾×ºĞ timesColl
-            Next c
-        Else
-            For c = c1 To c0 Step -1
-                Set gX = ws.Cells(r, c)
-                Set timesColl = get_times(gX)
-                calc_Á¤¾×ºĞ timesColl
-            Next c
-        End If
-    Next r
-
-FIN:
-    Application.EnableEvents = True
-    Application.ScreenUpdating = True
-
-    If Err.Number <> 0 Then
-        MsgBox Err.Description, vbCritical
-        Exit Sub
+    screenChanged = True
+    WriteCalculationResults workMonth, holidays, outputValues, outputColors, employees.Count, numberOfDays
+    Application.ScreenUpdating = oldScreenUpdating
+    screenChanged = False
+    If pendingDays > 0 Then
+        MsgBox "ê³„ì‚°ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤." & vbCrLf & "íŒì • ë³´ë¥˜ ì¸ì›: " & pendingPeople & "ëª…" & vbCrLf & _
+               "ë‚ ì§œë³„ ë³´ë¥˜ ê±´ìˆ˜: " & pendingDays & "ê±´ (êµì§ì› 1ëª…Â·ë‚ ì§œ 1ê°œ ê¸°ì¤€)" & vbCrLf & _
+               "íŒì • ë³´ë¥˜ëŠ” ê·¼ë¬´ì¼ìˆ˜ í•©ê³„ì— í¬í•¨í•˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.", vbInformation, "ê·¼ë¬´ì¼ìˆ˜ ê³„ì‚°"
+    Else
+        MsgBox "ê·¼ë¬´ì¼ìˆ˜ ê³„ì‚°ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.", vbInformation, "ê·¼ë¬´ì¼ìˆ˜ ê³„ì‚°"
     End If
-
-    ShowTimeReverseErrors
+    Exit Sub
+Failed:
+    If screenChanged Then Application.ScreenUpdating = oldScreenUpdating
+    MsgBox Err.Description, vbExclamation, "ê·¼ë¬´ì¼ìˆ˜ ê³„ì‚°"
 End Sub
 
-'========================================================
-' Helpers
-'========================================================
-Private Sub SetFill(ByVal cell As Range, ByVal fillColor As Long)
-    With cell.Interior
-        .Pattern = xlSolid
-        .color = fillColor
+Private Sub WriteCalculationResults(ByVal workMonth As Date, ByVal holidays As Object, _
+                                    ByRef values() As Variant, ByRef colors() As Long, _
+                                    ByVal employeeCount As Long, ByVal numberOfDays As Long)
+    Dim ws As Worksheet, table As Range, cell As Range
+    Dim i As Long, d As Long, noteRow As Long, dayValue As Date, headerText As String
+    Set ws = GetOrCreateSheet("ì‘ì—…ê²°ê³¼")
+    ws.UsedRange.UnMerge
+    ws.UsedRange.Clear
+    Set table = ws.Range(ws.Cells(1, 1), ws.Cells(employeeCount + 1, numberOfDays + 2))
+    table.Value2 = values
+    With table
+        .Font.Name = "ë§‘ì€ ê³ ë”•"
+        .Font.Size = 9
+        .Font.Color = RGB(0, 0, 0)
+        .Interior.Pattern = xlNone
+        .WrapText = True
+        .VerticalAlignment = xlTop
+        .Borders.LineStyle = xlContinuous
+        .Borders.Weight = xlThin
+        .Borders.Color = RGB(190, 190, 190)
+    End With
+    With ws.Range(ws.Cells(1, 1), ws.Cells(1, numberOfDays + 2))
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .Interior.Color = RGB(230, 233, 237)
+        .RowHeight = 36
+    End With
+    With ws.Cells(1, 1)
+        .HorizontalAlignment = xlLeft
+        .Borders(xlDiagonalUp).LineStyle = xlNone
+        With .Borders(xlDiagonalDown)
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+            .Color = RGB(120, 130, 145)
+        End With
+    End With
+    ws.Columns(1).ColumnWidth = 19
+    ws.Range(ws.Columns(2), ws.Columns(numberOfDays + 1)).ColumnWidth = 23
+    ws.Columns(numberOfDays + 2).ColumnWidth = 11
+    For d = 1 To numberOfDays
+        dayValue = DateSerial(Year(workMonth), Month(workMonth), d)
+        Set cell = ws.Cells(1, d + 1)
+        headerText = CStr(values(1, d + 1))
+        If Weekday(dayValue, vbSunday) = 1 Or holidays.Exists(HolidayKey(dayValue)) Then
+            cell.Characters(Len(headerText) - 1, 1).Font.Color = RGB(255, 0, 0)
+        ElseIf Weekday(dayValue, vbSunday) = 7 Then
+            cell.Characters(Len(headerText) - 1, 1).Font.Color = RGB(0, 0, 255)
+        End If
+        For i = 1 To employeeCount
+            If colors(i, d) <> -1 Then ws.Cells(i + 1, d + 1).Interior.Color = colors(i, d)
+        Next i
+    Next d
+    With ws.Range(ws.Cells(2, numberOfDays + 2), ws.Cells(employeeCount + 1, numberOfDays + 2))
+        .NumberFormat = "0"
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+    End With
+    ws.Range(ws.Rows(2), ws.Rows(employeeCount + 1)).AutoFit
+    noteRow = employeeCount + 3
+    ws.Cells(noteRow, 1).Value2 = "ìƒ‰ìƒ ì•ˆë‚´"
+    ws.Cells(noteRow, 1).Font.Bold = True
+    ws.Cells(noteRow, 2).Value2 = "ë…¸ë‘: ê¸°ë³¸ ê·¼ë¬´ / ì¶œì¥"
+    ws.Cells(noteRow, 2).Interior.Color = RGB(255, 255, 0)
+    ws.Cells(noteRow + 1, 2).Value2 = "ì£¼í™©: ë°©í•™ ê·¼ë¬´ / ë³µë¬´ êµ¬ê°„ ì¶©ì¡±"
+    ws.Cells(noteRow + 1, 2).Interior.Color = RGB(255, 192, 0)
+    ws.Cells(noteRow + 2, 2).Value2 = "íšŒìƒ‰: íŒì • ë³´ë¥˜"
+    ws.Cells(noteRow + 2, 2).Interior.Color = RGB(217, 217, 217)
+    ws.Cells(noteRow + 3, 2).Value2 = "ì±„ìš°ê¸° ì—†ìŒ: ê·¼ë¬´ì¼ìˆ˜ ì•„ë‹˜ / ì£¼ë§Â·ê³µíœ´ì¼Â·ì¸ì‚¬ë³€ë™"
+    ws.Cells(noteRow + 4, 2).Value2 = "íŒì • ë³´ë¥˜ëŠ” ê·¼ë¬´ì¼ìˆ˜ í•©ê³„ì— í¬í•¨í•˜ì§€ ì•ŠìŒ"
+    With ws.Range(ws.Cells(noteRow, 1), ws.Cells(noteRow + 4, 4))
+        .Font.Name = "ë§‘ì€ ê³ ë”•"
+        .Font.Size = 9
+        .VerticalAlignment = xlTop
+    End With
+    ws.PageSetup.PrintArea = ws.Range(ws.Cells(1, 1), ws.Cells(noteRow + 4, numberOfDays + 2)).Address
+    ws.PageSetup.Orientation = xlLandscape
+    ws.PageSetup.Zoom = False
+    ws.PageSetup.FitToPagesWide = 1
+    ws.PageSetup.FitToPagesTall = False
+    ws.PageSetup.PrintTitleRows = "$1:$1"
+    ws.Activate
+    With ActiveWindow
+        .FreezePanes = False
+        .SplitColumn = 1
+        .SplitRow = 1
+        .FreezePanes = True
     End With
 End Sub
 
-Private Function TimeStrToMin(ByVal hhmm As String) As Long
-    Dim p() As String
-    p = Split(hhmm, ":")
-    If UBound(p) <> 1 Then ErrStop "½Ã°£ ÆÄ½Ì ½ÇÆĞ: " & hhmm
-    TimeStrToMin = CLng(p(0)) * 60 + CLng(p(1))
+Private Function RecordDayIntervals(ByVal records As Collection, ByVal recordKind As String, _
+                                    ByVal dayValue As Date, ByVal arrivalMinutes As Long, _
+                                    ByVal departureMinutes As Long) As Variant
+    Dim record As Object, raw As Variant, span As Variant
+    For Each record In records
+        span = RecordDaySpan(record.StartAt, record.EndAt, recordKind, dayValue, arrivalMinutes, departureMinutes)
+        AppendInterval raw, span
+    Next record
+    RecordDayIntervals = MergeIntervals(raw)
 End Function
 
-Private Function MinToTimeStr(ByVal mins As Long) As String
-    Dim hh As Long, nn As Long
-    hh = mins \ 60
-    nn = mins Mod 60
-    MinToTimeStr = Right$("0" & CStr(hh), 2) & ":" & Right$("0" & CStr(nn), 2)
+' BEGIN PURE INTERVAL LOGIC -- tests/test_calculation.vbs.py executes this exact source.
+' Intervals are Empty or Array(Array(startMinute, endMinute), ...), all half-open.
+Public Function RecordDaySpan(ByVal startAt As Date, ByVal endAt As Date, ByVal recordKind As String, _
+                              ByVal dayValue As Date, ByVal arrivalMinutes As Long, _
+                              ByVal departureMinutes As Long) As Variant
+    Dim dayStart As Double, dayEnd As Double, spanStart As Double, spanEnd As Double
+    Dim recordStartDay As Double, recordEndDay As Double, minuteStart As Long, minuteEnd As Long
+    dayStart = Int(CDbl(dayValue))
+    dayEnd = dayStart + 1
+    If startAt >= endAt Then Err.Raise 5, "RecordDaySpan", "ê¸°ë¡ì˜ ì‹œì‘ì€ ì¢…ë£Œë³´ë‹¤ ë¹¨ë¼ì•¼ í•©ë‹ˆë‹¤."
+    If CDbl(startAt) >= dayEnd Or CDbl(endAt) <= dayStart Then Exit Function
+    recordStartDay = Int(CDbl(startAt))
+    recordEndDay = Int(CDbl(endAt))
+    spanStart = CDbl(startAt)
+    spanEnd = CDbl(endAt)
+    If recordKind <> "Z" And recordStartDay <> recordEndDay Then
+        If dayStart = recordStartDay Then
+            spanEnd = dayStart + departureMinutes / 1440#
+            If recordKind = "Y" Then
+                If CLng((CDbl(startAt) - recordStartDay) * 1440#) > departureMinutes Then spanEnd = dayEnd
+            End If
+        ElseIf dayStart = recordEndDay Then
+            spanStart = dayStart + arrivalMinutes / 1440#
+            If recordKind = "Y" Then
+                If CLng((CDbl(endAt) - recordEndDay) * 1440#) < arrivalMinutes Then spanStart = dayStart
+            End If
+        Else
+            spanStart = dayStart + arrivalMinutes / 1440#
+            spanEnd = dayStart + departureMinutes / 1440#
+        End If
+    End If
+    If spanStart < CDbl(startAt) Then spanStart = CDbl(startAt)
+    If spanEnd > CDbl(endAt) Then spanEnd = CDbl(endAt)
+    If spanStart < dayStart Then spanStart = dayStart
+    If spanEnd > dayEnd Then spanEnd = dayEnd
+    If spanStart >= spanEnd Then Exit Function
+    minuteStart = CLng((spanStart - dayStart) * 1440#)
+    minuteEnd = CLng((spanEnd - dayStart) * 1440#)
+    If minuteStart < minuteEnd Then RecordDaySpan = Array(minuteStart, minuteEnd)
 End Function
 
-Private Sub AddTimeReverseError(ByVal srcCell As Range, ByVal stStr As String, ByVal enStr As String)
-    If gTimeReverse Is Nothing Then Set gTimeReverse = CreateObject("Scripting.Dictionary")
-
-    Dim key As String
-    key = srcCell.Worksheet.Name & "!" & srcCell.Address(False, False) & "|" & stStr & "~" & enStr
-
-    If Not gTimeReverse.Exists(key) Then
-        gTimeReverse.Add key, srcCell.Worksheet.Name & "!" & srcCell.Address(False, False) & " : " & stStr & "~" & enStr
+Public Sub AppendInterval(ByRef intervals As Variant, ByVal span As Variant)
+    Dim n As Long
+    If IsEmpty(span) Then Exit Sub
+    If CLng(span(0)) >= CLng(span(1)) Then Exit Sub
+    If IsEmpty(intervals) Then
+        intervals = Array(span)
+    Else
+        n = UBound(intervals) + 1
+        ReDim Preserve intervals(n)
+        intervals(n) = span
     End If
 End Sub
 
-Private Sub ShowTimeReverseErrors()
-    If gTimeReverse Is Nothing Then Exit Sub
-    If gTimeReverse.Count = 0 Then Exit Sub
+Public Function MergeIntervals(ByVal intervals As Variant) As Variant
+    Dim sorted As Variant, result As Variant, current As Variant, nextSpan As Variant
+    Dim i As Long, j As Long, minimum As Long, temporary As Variant
+    If IsEmpty(intervals) Then Exit Function
+    sorted = intervals
+    ' ìµœëŒ“ê°’ì€ í•˜ë£¨ 1,440ë¶„ì´ë©° ì…ë ¥ ê±´ìˆ˜ì— ê´€ê³„ì—†ì´ ê°™ì€ ë‚ ì˜ ì¤‘ë³µì€ í•©ì¹œë‹¤.
+    For i = LBound(sorted) To UBound(sorted) - 1
+        minimum = i
+        For j = i + 1 To UBound(sorted)
+            If sorted(j)(0) < sorted(minimum)(0) Then minimum = j
+        Next j
+        If minimum <> i Then
+            temporary = sorted(i)
+            sorted(i) = sorted(minimum)
+            sorted(minimum) = temporary
+        End If
+    Next i
+    current = sorted(LBound(sorted))
+    For i = LBound(sorted) + 1 To UBound(sorted)
+        nextSpan = sorted(i)
+        If nextSpan(0) <= current(1) Then
+            If nextSpan(1) > current(1) Then current(1) = nextSpan(1)
+        Else
+            AppendInterval result, current
+            current = nextSpan
+        End If
+    Next i
+    AppendInterval result, current
+    MergeIntervals = result
+End Function
 
-    Dim msg As String
-    Dim v As Variant
-
-    msg = "½Ã°£ ¿ªÀü ¿À·ù ¼¿:" & vbCrLf & vbCrLf
-    For Each v In gTimeReverse.Items
-        msg = msg & CStr(v) & vbCrLf
-    Next v
-
-    MsgBox msg, vbExclamation
-End Sub
-
-' °°Àº »ö»ó ³» ±¸°£µé(½ÃÀÛ/³¡ ºĞ)À» Á¤·Ä ÈÄ °ãÄ¡¸é merge
-Private Function MergeIntervals(ByVal coll As Collection) As Collection
-    Dim out As New Collection
-    If coll.Count = 0 Then
-        Set MergeIntervals = out
+' A \ Bë¥¼ êµ¬í•œë‹¤. í¬í•¨ íŒì •ì€ ê¸¸ì´ ë¹„êµ ëŒ€ì‹  ì´ ì°¨ì§‘í•©ì´ ë¹„ì—ˆëŠ”ì§€ í™•ì¸í•œë‹¤.
+Public Function SubtractIntervals(ByVal minuend As Variant, ByVal subtrahend As Variant) As Variant
+    Dim leftSpans As Variant, rightSpans As Variant, result As Variant
+    Dim leftSpan As Variant, rightSpan As Variant, i As Long, j As Long
+    Dim cursor As Long, finish As Long, gapEnd As Long
+    leftSpans = MergeIntervals(minuend)
+    If IsEmpty(leftSpans) Then Exit Function
+    rightSpans = MergeIntervals(subtrahend)
+    If IsEmpty(rightSpans) Then
+        SubtractIntervals = leftSpans
         Exit Function
     End If
-
-    Dim n As Long: n = coll.Count
-    Dim s() As Long, e() As Long
-    ReDim s(1 To n)
-    ReDim e(1 To n)
-
-    Dim i As Long, j As Long
-    For i = 1 To n
-        Dim it As Variant
-        it = coll(i)
-        s(i) = CLng(it(0))
-        e(i) = CLng(it(1))
-    Next i
-
-    ' sort by start (¹öºí Á¤·Ä)
-    For i = 1 To n - 1
-        For j = i + 1 To n
-            If s(j) < s(i) Then
-                Dim ts As Long, te As Long
-                ts = s(i): te = e(i)
-                s(i) = s(j): e(i) = e(j)
-                s(j) = ts: e(j) = te
+    For i = LBound(leftSpans) To UBound(leftSpans)
+        leftSpan = leftSpans(i)
+        cursor = CLng(leftSpan(0))
+        finish = CLng(leftSpan(1))
+        For j = LBound(rightSpans) To UBound(rightSpans)
+            rightSpan = rightSpans(j)
+            If rightSpan(0) >= finish Then Exit For
+            If rightSpan(1) > cursor Then
+                If rightSpan(0) > cursor Then
+                    gapEnd = CLng(rightSpan(0))
+                    If gapEnd > finish Then gapEnd = finish
+                    AppendInterval result, Array(cursor, gapEnd)
+                End If
+                If rightSpan(1) > cursor Then cursor = CLng(rightSpan(1))
+                If cursor >= finish Then Exit For
             End If
         Next j
+        If cursor < finish Then AppendInterval result, Array(cursor, finish)
     Next i
+    SubtractIntervals = result
+End Function
 
-    ' merge
-    Dim curS As Long, curE As Long
-    Dim k As Long
-    curS = s(1): curE = e(1)
+Public Function IntervalsContain(ByVal outerIntervals As Variant, ByVal innerIntervals As Variant) As Boolean
+    Dim remainder As Variant
+    remainder = SubtractIntervals(innerIntervals, outerIntervals)
+    IntervalsContain = IsEmpty(remainder)
+End Function
 
-    For k = 2 To n
-        If s(k) <= curE Then
-            If e(k) > curE Then curE = e(k)
-        Else
-            out.Add Array(curS, curE)
-            curS = s(k): curE = e(k)
+Public Function IntervalsOutsideWork(ByVal intervals As Variant, ByVal arrivalMinutes As Long, _
+                                    ByVal departureMinutes As Long) As Boolean
+    Dim i As Long, span As Variant
+    If IsEmpty(intervals) Then Exit Function
+    For i = LBound(intervals) To UBound(intervals)
+        span = intervals(i)
+        If span(0) < arrivalMinutes Or span(1) > departureMinutes Then
+            IntervalsOutsideWork = True
+            Exit Function
         End If
-    Next k
-    out.Add Array(curS, curE)
-
-    Set MergeIntervals = out
+    Next i
 End Function
 
-' Çì´õ ¼¿¿¡¼­ ¿äÀÏ ÇÑ ±ÛÀÚ("Åä","ÀÏ",...) ÃßÃâ (Ç¥½Ã ÅØ½ºÆ® ±âÁØ)
-Private Function ExtractWeekdayChar(ByVal cell As Range) As String
-    Dim txt As String
-    txt = cell.Text
-    If Len(Trim$(txt)) = 0 Then txt = CStr(cell.Value)
+Public Function JudgeIntervals(ByVal x As Variant, ByVal y As Variant, ByVal z As Variant, _
+                               ByVal arrivalMinutes As Long, ByVal departureMinutes As Long) As Variant
+    Dim mask As Long, status As Long, caseNumber As Long, color As Long, reason As String
+    If Not IsEmpty(x) Then mask = mask + 1
+    If Not IsEmpty(y) Then mask = mask + 2
+    If Not IsEmpty(z) Then mask = mask + 4
+    status = 0
+    color = -1
+    Select Case mask
+        Case 0
+            status = 1: caseNumber = 1: color = RGB(255, 255, 0)
+            reason = "ë³µë¬´Â·ì¶œì¥Â·ë°©í•™ ê·¼ë¬´ ê¸°ë¡ ì—†ìŒ"
+        Case 1
+            caseNumber = 2
+            reason = "ë³µë¬´ ê¸°ë¡ë§Œ ìˆìŒ"
+        Case 2
+            status = 1: caseNumber = 3: color = RGB(255, 255, 0)
+            reason = "ì¶œì¥ ê¸°ë¡ë§Œ ìˆìŒ"
+        Case 4
+            status = 1: caseNumber = 4: color = RGB(255, 192, 0)
+            reason = "ë°©í•™ ê·¼ë¬´ ê¸°ë¡ë§Œ ìˆìŒ"
+        Case 3
+            caseNumber = 5
+            If IntervalsContain(y, x) Then
+                status = 1: color = RGB(255, 192, 0)
+                reason = "ì¶œì¥ êµ¬ê°„ì´ ëª¨ë“  ë³µë¬´ êµ¬ê°„ì„ í¬í•¨í•¨"
+            ElseIf IntervalsOutsideWork(y, arrivalMinutes, departureMinutes) Then
+                status = -1: color = RGB(217, 217, 217)
+                reason = "ì¶œì¥ì´ ë³µë¬´ êµ¬ê°„ì„ í¬í•¨í•˜ì§€ ì•Šê³  ì •ê·œ ê·¼ë¬´ì‹œê°„ ë°–ì˜ ì‹œê°„ì„ í¬í•¨í•¨"
+            Else
+                reason = "ì¶œì¥ì´ ë³µë¬´ êµ¬ê°„ì„ í¬í•¨í•˜ì§€ ì•Šê³  ì •ê·œ ê·¼ë¬´ì‹œê°„ ì•ˆì— ìˆìŒ"
+            End If
+        Case 5
+            caseNumber = 6
+            If IntervalsContain(z, x) Then
+                status = 1: color = RGB(255, 192, 0)
+                reason = "ë°©í•™ ê·¼ë¬´ êµ¬ê°„ì´ ëª¨ë“  ë³µë¬´ êµ¬ê°„ì„ í¬í•¨í•¨"
+            Else
+                reason = "ë°©í•™ ê·¼ë¬´ê°€ ëª¨ë“  ë³µë¬´ êµ¬ê°„ì„ í¬í•¨í•˜ì§€ ì•ŠìŒ"
+            End If
+        Case Else
+            status = -1: color = RGB(217, 217, 217)
+            reason = "ì¶œì¥ê³¼ ë°©í•™ ê·¼ë¬´ê°€ í•¨ê»˜ ìˆì–´ í™•ì¸ì´ í•„ìš”í•¨"
+    End Select
+    JudgeIntervals = Array(status, caseNumber, color, reason)
+End Function
 
-    Dim p1 As Long, p2 As Long
-    p1 = InStr(1, txt, "(", vbTextCompare)
-    p2 = InStr(1, txt, ")", vbTextCompare)
+Public Function MinuteText(ByVal minutes As Long) As String
+    MinuteText = Right$("0" & CStr(minutes \ 60), 2) & ":" & Right$("0" & CStr(minutes Mod 60), 2)
+End Function
 
-    If p1 > 0 And p2 > p1 Then
-        ExtractWeekdayChar = Mid$(txt, p1 + 1, 1)
-    Else
-        ExtractWeekdayChar = ""
+Public Function IntervalText(ByVal intervals As Variant, ByVal prefix As String) As String
+    Dim i As Long, span As Variant, result As String
+    If IsEmpty(intervals) Then Exit Function
+    For i = LBound(intervals) To UBound(intervals)
+        span = intervals(i)
+        If Len(result) > 0 Then result = result & vbLf
+        If i = LBound(intervals) Then result = prefix
+        result = result & MinuteText(CLng(span(0))) & "~" & MinuteText(CLng(span(1)))
+    Next i
+    IntervalText = result
+End Function
+
+Public Function DayResultText(ByVal x As Variant, ByVal y As Variant, ByVal z As Variant, ByVal status As Long) As String
+    Dim result As String, part As String
+    result = IntervalText(x, "ë³µë¬´: ")
+    part = IntervalText(y, "ì¶œì¥: ")
+    If Len(part) > 0 Then
+        If Len(result) > 0 Then result = result & vbLf
+        result = result & part
     End If
+    part = IntervalText(z, "ë°©í•™: ")
+    If Len(part) > 0 Then
+        If Len(result) > 0 Then result = result & vbLf
+        result = result & part
+    End If
+    If status = -1 Then
+        If Len(result) > 0 Then result = result & vbLf
+        result = result & "íŒì • ë³´ë¥˜"
+    End If
+    DayResultText = result
 End Function
-
-Private Sub ErrStop(ByVal msg As String)
-    Err.Raise vbObjectError + 513, "VBA", msg
-End Sub
+' END PURE INTERVAL LOGIC

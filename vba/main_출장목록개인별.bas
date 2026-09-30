@@ -1,439 +1,146 @@
-Attribute VB_Name = "main_ÃâÀå¸ñ·Ï°³ÀÎº°"
+Attribute VB_Name = "main_ì¶œì¥ëª©ë¡ê°œì¸ë³„"
 Option Explicit
 
-' main¿¡¼­ ÃÊ±âÈ­ÇØ¼­ ¾²´Â "out A¿­¿¡ ¾ø´Â ´ë»óÀÚ" ´©Àû¿ë(Áßº¹ Á¦°Å)
-Private gMissing As Object  ' Scripting.Dictionary (late binding)
+' Button entry point. A cancelled selection discards the entire staged import.
+Public Sub LoadTripRecords()
+    Dim workMonth As Date, arrivalMinutes As Long, departureMinutes As Long
+    Dim sourceBook As Workbook, sourceSheet As Worksheet, openedByCode As Boolean
+    Dim staged As Object, candidates As Collection, records As Collection
+    Dim employee As CEmployee, record As CTripRecord
+    Dim selector As frmTripEmployee
+    Dim r As Long, consecutiveNonTargets As Long, recordCount As Long
+    Dim originalName As String, employeeName As String, idPrefix As String
+    Dim startText As String, endText As String, hasMaskedId As Boolean
+    Dim startAt As Date, endAt As Date, errorText As String
+    Dim skipRecord As Boolean
 
-'========================================================
-' is_valid(x)
-' - startCellºÎÅÍ °°Àº ¿­¿¡¼­ ¾Æ·¡·Î ³»·Á°¡¸ç Å½»ö
-' - °ªÀÌ "ºÎ»ê°ø¾÷°íµîÇĞ±³" / "¼º¸í" / "" ÀÌ¸é skip
-' - ""(ºó¼¿)¸¸ "¿¬¼Ó 20°³"¸é False ¹İÈ¯
-' ¹İÈ¯: Array(found As Boolean, value As String, row As Long, col As Long, nextCell As Range)
-'========================================================
-Public Function is_valid(ByVal startCell As Range) As Variant
-    Dim ws As Worksheet: Set ws = startCell.Worksheet
-    Dim r As Long, c As Long
-    r = startCell.Row
-    c = startCell.Column
+    On Error GoTo Failed
+    ReadBaseSettings workMonth, arrivalMinutes, departureMinutes, False
+    RequireEmployeeState workMonth
+    Set sourceBook = SelectInputWorkbook(openedByCode)
+    If sourceBook Is Nothing Then Exit Sub
+    Set sourceSheet = sourceBook.Worksheets(1)
+    Set staged = NewRecordStage()
 
-    Dim blankStreak As Long
-    blankStreak = 0
+    r = 5
+    Do While r <= sourceSheet.Rows.Count
+        originalName = CellText(sourceSheet.Cells(r, "B"))
+        startText = CellText(sourceSheet.Cells(r, "C"))
+        endText = CellText(sourceSheet.Cells(r, "D"))
+        If Len(originalName) > 0 And Len(startText) > 0 And Len(endText) > 0 _
+           And InStr(1, startText, "ì§ê¸‰", vbBinaryCompare) = 0 Then
+            consecutiveNonTargets = 0
+            ParseTripDisplayName originalName, employeeName, idPrefix, hasMaskedId, _
+                                 sourceSheet.Name & "!B" & CStr(r)
+            If gEmployeesByName.Exists(employeeName) Then
+                Set candidates = gEmployeesByName(employeeName)
+                Set employee = Nothing
+                skipRecord = False
+                If Not hasMaskedId And candidates.Count = 1 Then
+                    Set employee = candidates(1)
+                Else
+                    ' Always ask for this row, even when another row looked identical.
+                    Set selector = New frmTripEmployee
+                    selector.Configure candidates, originalName, employeeName, idPrefix, r
+                    selector.Show vbModal
+                    If selector.Cancelled Then GoTo Cancelled
+                    skipRecord = selector.Skipped
+                    Set employee = selector.SelectedEmployee
+                    Unload selector
+                    Set selector = Nothing
+                End If
 
-    Do While r <= ws.Rows.Count
-        Dim v As String
-        v = Trim$(CStr(ws.Cells(r, c).Value))
-
-        If v = "" Then
-            blankStreak = blankStreak + 1
-            If blankStreak >= 20 Then
-                is_valid = Array(False)
-                Exit Function
+                If Not skipRecord Then
+                    If employee Is Nothing Then
+                        RaiseValidation "ì¶œì¥ ìë£Œ " & CStr(r) & "í–‰", "ì„ íƒí•œ ëŒ€ìƒìë¥¼ í™•ì¸í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+                    End If
+                    startAt = ParseDateTimeCell(sourceSheet.Cells(r, "C"), ".")
+                    endAt = ParseDateTimeCell(sourceSheet.Cells(r, "D"), ".")
+                    If startAt >= endAt Then
+                        RaiseValidation "ì¶œì¥ ìë£Œ " & CStr(r) & "í–‰ (C:D)", _
+                                        "ì‹œì‘ì¼ì‹œëŠ” ì¢…ë£Œì¼ì‹œë³´ë‹¤ ë¹¨ë¼ì•¼ í•©ë‹ˆë‹¤."
+                    End If
+                    Set record = New CTripRecord
+                    record.StartAt = startAt
+                    record.EndAt = endAt
+                    Set records = staged(CStr(employee.Order))
+                    records.Add record
+                    recordCount = recordCount + 1
+                End If
             End If
         Else
-            blankStreak = 0
-            If v <> "ºÎ»ê°ø¾÷°íµîÇĞ±³" And v <> "¼º¸í" Then
-                Dim found As Range
-                Set found = ws.Cells(r, c)
-                is_valid = Array(True, v, found.Row, found.Column, found.Offset(1, 0))
-                Exit Function
-            End If
+            consecutiveNonTargets = consecutiveNonTargets + 1
+            If consecutiveNonTargets = 7 Then Exit Do
         End If
-
         r = r + 1
     Loop
 
-    is_valid = Array(False)
-End Function
+    ' Close only our own input workbook, before touching the existing model.
+    CloseInputWorkbook sourceBook, openedByCode
+    Set sourceBook = Nothing
+    CommitRecordStage staged, "Trip"
+    MsgBox "ì¶œì¥ ìë£Œ " & CStr(recordCount) & "ê±´ì„ ë¶ˆëŸ¬ì™”ìŠµë‹ˆë‹¤.", vbInformation, "ì¶œì¥ ê·¼ë¬´ìƒí™©ë¶€"
+    Exit Sub
 
-'========================================================
-' func_name(var)
-'========================================================
-Public Function func_name(ByVal v As Variant) As String
-    Dim s As String
-    s = Trim$(GetValAsString(v))
+Cancelled:
+    On Error Resume Next
+    If Not selector Is Nothing Then Unload selector
+    Set selector = Nothing
+    CloseInputWorkbook sourceBook, openedByCode
+    On Error GoTo 0
+    Exit Sub
 
-    If Len(s) <= 3 Then
-        func_name = s
-    ElseIf Len(s) >= 4 And IsAlpha(Mid$(s, 4, 1)) Then
-        func_name = Left$(s, 4)
-    Else
-        func_name = Left$(s, 3)
-    End If
-End Function
+Failed:
+    errorText = Err.Description
+    If r >= 5 Then errorText = "ì¶œì¥ ìë£Œ " & CStr(r) & "í–‰: " & errorText
+    On Error Resume Next
+    If Not selector Is Nothing Then Unload selector
+    Set selector = Nothing
+    CloseInputWorkbook sourceBook, openedByCode
+    On Error GoTo 0
+    MsgBox errorText & vbCrLf & "ê¸°ì¡´ ì¶œì¥ ìë£ŒëŠ” ìœ ì§€ë©ë‹ˆë‹¤.", vbExclamation, "ì¶œì¥ ìë£Œ ë¶ˆëŸ¬ì˜¤ê¸° ì˜¤ë¥˜"
+End Sub
 
-'========================================================
-' func_date(var)
-' ÀÔ·Â: "yyyy.mm.dd hh:mm ~ yyyy.mm.dd hh:mm"
-' Ãâ·Â: Collection of Array(mm.dd, startHH:MM, endHH:MM)
-'       Áß out!B1°ú °°Àº ¿ù¸¸
-'
-' ±ÔÄ¢:
-' - ±â°£ÀÌ ÀÌÆ² ÀÌ»óÀÌ¾îµµ ¸ÅÀÏ ½ÃÀÛ/Á¾·á½Ã°£Àº Å¸°Ù ¼¿¿¡ ÀûÈù ½Ã°£ ±×´ë·Î »ç¿ë
-'========================================================
-Public Function func_date(ByVal v As Variant) As Collection
-    Dim s As String
-    s = Trim$(GetValAsString(v))
-    
-    Dim parts() As String
-    parts = Split(s, "~")
-    If UBound(parts) <> 1 Then ErrStop "±â°£ ¹®ÀÚ¿­ Çü½Ä ¿À·ù: " & s
-    
-    Dim startDT As Date, endDT As Date
-    startDT = ParseDateTimeDot(Trim$(parts(0)))
-    endDT = ParseDateTimeDot(Trim$(parts(1)))
-    
-    If endDT < startDT Then
-        Dim tmp As Date
-        tmp = startDT
-        startDT = endDT
-        endDT = tmp
-    End If
-    
-    Dim startDate As Date, endDate As Date
-    startDate = DateSerial(Year(startDT), Month(startDT), day(startDT))
-    endDate = DateSerial(Year(endDT), Month(endDT), day(endDT))
-    
-    Dim st As String, en As String
-    st = Format$(startDT, "hh:nn")
-    en = Format$(endDT, "hh:nn")
-    
-    ' out!B1¿¡¼­ ´ë»ó ¿ù ÀÚµ¿ Ãëµæ
-    Dim targetMonth As Long
-    Dim dummyDay As Long
-    
-    ExtractMonthDayFromHeaderCell _
-        ThisWorkbook.Worksheets("out").Cells(1, 2), _
-        targetMonth, _
-        dummyDay
-    
-    Dim col As New Collection
-    Dim d As Date
-    
-    For d = startDate To endDate
-        Dim mmdd As String
-        mmdd = Format$(d, "mm.dd")
-        
-        ' ±âÁ¸:
-        ' If Left$(mmdd, 2) = "07" Then
-        '
-        ' º¯°æ:
-        If Month(d) = targetMonth Then
-            col.Add Array(mmdd, st, en)
-        End If
-    Next d
-    
-    Set func_date = col
-End Function
+Private Sub ParseTripDisplayName(ByVal originalName As String, ByRef employeeName As String, _
+                                 ByRef idPrefix As String, ByRef hasMaskedId As Boolean, _
+                                 ByVal context As String)
+    Dim openAt As Long, front As String, maskedId As String, i As Long
+    Dim character As String
+    originalName = TrimInput(originalName)
+    employeeName = vbNullString
+    idPrefix = vbNullString
+    hasMaskedId = False
+    If Len(originalName) = 0 Then RaiseValidation context, "ì´ë¦„ì´ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤."
 
-'========================================================
-' func_move(y_, x_)
-' - x_°¡ out A¿­(out_a)¿¡ ¾øÀ¸¸é: continue + ´©Àû ÀúÀå(Áßº¹ Á¦°Å)
-' - ÁÖ¸»(Åä/ÀÏ)ÀÌ¸é continue
-' - ÀÔ·ÂÀº »¡°£ ±Û¾¾, ±âÁ¸ ±Û¾¾ »öÀº °Çµå¸®Áö ¾ÊÀ½
-'========================================================
-Public Sub func_move(ByVal y_ As Collection, ByVal x_ As String)
-    Dim ws As Worksheet
-    Set ws = ThisWorkbook.Worksheets("out")
-
-    ' out_b: B1ºÎÅÍ ¿À¸¥ÂÊÀ¸·Î ºó ¼¿ Àü±îÁö
-    Dim headerLastCol As Long
-    headerLastCol = GetHeaderLastCol(ws, 1, 2)
-    If headerLastCol < 2 Then ErrStop "'out' ½ÃÆ® B1ºÎÅÍ Çì´õ°¡ ¾ø½À´Ï´Ù."
-
-    ' out_a: A2ºÎÅÍ ¾Æ·¡·Î ºó ¼¿ Àü±îÁö¿¡¼­ x_ Ã£±â
-    Dim nameRow As Long
-    nameRow = FindNameRowInOutA(ws, Trim$(x_), 2)
-
-    ' ÀÌ¸§ ¸ø Ã£À¸¸é ´©Àû¸¸ ÇÏ°í Á¾·á
-    If nameRow = 0 Then
-        If gMissing Is Nothing Then Set gMissing = CreateObject("Scripting.Dictionary")
-        If Not gMissing.Exists(Trim$(x_)) Then gMissing.Add Trim$(x_), True
+    If InStr(1, originalName, "(", vbBinaryCompare) = 0 _
+       And InStr(1, originalName, ")", vbBinaryCompare) = 0 Then
+        employeeName = originalName
         Exit Sub
     End If
 
-    Dim i As Long
-    For i = 1 To y_.Count
-        Dim item As Variant
-        item = y_(i) ' Array(mm.dd, start, end)
+    openAt = InStrRev(originalName, "(", -1, vbBinaryCompare)
+    If openAt <= 1 Or Right$(originalName, 1) <> ")" Then GoTo InvalidFormat
+    front = TrimInput(Left$(originalName, openAt - 1))
+    maskedId = Mid$(originalName, openAt + 1, Len(originalName) - openAt - 1)
+    If InStr(front, "(") > 0 Or InStr(front, ")") > 0 Then GoTo InvalidFormat
+    If Len(front) < 3 Then GoTo InvalidFormat
+    If Not Right$(front, 2) Like "##" Then GoTo InvalidFormat
+    employeeName = TrimInput(Left$(front, Len(front) - 2))
+    If Len(employeeName) = 0 Or Len(maskedId) < 4 Then GoTo InvalidFormat
 
-        Dim mmdd As String, st As String, en As String
-        mmdd = CStr(item(0))
-        st = CStr(item(1))
-        en = CStr(item(2))
-
-        Dim m As Long, d As Long
-        m = CLng(Left$(mmdd, 2))
-        d = CLng(Right$(mmdd, 2))
-
-        ' Çì´õ¿¡¼­ ¿ù/ÀÏ À¯ÀÏ ¸ÅÄª
-        Dim headerCell As Range
-        Set headerCell = FindUniqueHeaderByMonthDay(ws, 1, 2, headerLastCol, m, d)
-
-        ' Åä/ÀÏÀÌ¸é continue
-        Dim wk As String
-        wk = ExtractWeekdayChar(headerCell)
-        If wk = "Åä" Or wk = "ÀÏ" Then GoTo NextItem
-
-        ' ±³Â÷¼¿¿¡ Ãß°¡
-        Dim target As Range
-        Set target = ws.Cells(nameRow, headerCell.Column)
-
-        Dim newText As String
-        newText = st & "~" & en
-
-        AppendColoredLine target, newText, vbRed
-
-NextItem:
+    idPrefix = Left$(maskedId, 3)
+    For i = 1 To 3
+        character = Mid$(idPrefix, i, 1)
+        If character = "*" Or character = "(" Or character = ")" _
+           Or Len(TrimInput(character)) = 0 Then GoTo InvalidFormat
     Next i
-End Sub
+    For i = 4 To Len(maskedId)
+        If Mid$(maskedId, i, 1) <> "*" Then GoTo InvalidFormat
+    Next i
+    hasMaskedId = True
+    Exit Sub
 
-'========================================================
-' main_ÃâÀå¸ñ·Ï_°³ÀÎº°
-' ¡Ø VBA ÇÁ·Î½ÃÀú¸í¿¡´Â °ıÈ£¸¦ ³ÖÀ» ¼ö ¾ø¾î¼­ ÀÌ·¸°Ô »ç¿ë
-'========================================================
-Public Sub main_ÃâÀå¸ñ·Ï_°³ÀÎº°()
-    Dim wsSrc As Worksheet
-    Set wsSrc = ThisWorkbook.Worksheets("ÃâÀå¸ñ·Ï(°³ÀÎº°)")
-
-    Set gMissing = CreateObject("Scripting.Dictionary")
-
-    Dim cur As Range
-    Set cur = wsSrc.Range("B5")
-
-    Do
-        Dim res As Variant
-        res = is_valid(cur)
-        If Not IsArray(res) Then Exit Do
-        If res(0) = False Then Exit Do
-
-        Dim srcRow As Long
-        Dim rawName As String
-        Dim x_ As String
-        rawName = CStr(res(1))
-        srcRow = CLng(res(2))
-
-        ' ÀÌ¸§ °¡°ø
-        x_ = func_name(rawName)
-
-        ' "x_Çà c¿­ °ª" + " ~ " + "x_Çà d¿­ °ª"
-        Dim s As String
-        s = GetCellAsDateTimeDot(wsSrc.Cells(srcRow, "C")) & " ~ " & GetCellAsDateTimeDot(wsSrc.Cells(srcRow, "D"))
-
-        Dim y_ As Collection
-        Set y_ = func_date(s)
-
-        func_move y_, x_
-
-        Set cur = res(4) ' ´ÙÀ½ Å½»ö ½ÃÀÛ ¼¿
-    Loop
-
-    ' out_a¿¡ ¾ø´ø ´ë»óÀÚ ¾Ë¸²(Áßº¹ Á¦°Å)
-    If Not gMissing Is Nothing Then
-        If gMissing.Count > 0 Then
-            Dim k As Variant, msg As String
-            msg = "out ½ÃÆ® A¿­(out_a)¿¡¼­ Ã£Áö ¸øÇØ °Ç³Ê¶Ú ´ë»óÀÚ:" & vbCrLf & vbCrLf
-            For Each k In gMissing.Keys
-                msg = msg & CStr(k) & vbCrLf
-            Next k
-            MsgBox msg, vbExclamation
-        End If
-    End If
-End Sub
-
-'========================================================
-' Helpers
-'========================================================
-Private Function GetValAsString(ByVal v As Variant) As String
-    If TypeName(v) = "Range" Then
-        GetValAsString = CStr(v.Value)
-    Else
-        GetValAsString = CStr(v)
-    End If
-End Function
-
-Private Function IsAlpha(ByVal ch As String) As Boolean
-    If Len(ch) <> 1 Then
-        IsAlpha = False
-    Else
-        Dim code As Long
-        code = AscW(ch)
-        IsAlpha = (code >= 65 And code <= 90) Or (code >= 97 And code <= 122)
-    End If
-End Function
-
-Private Sub ErrStop(ByVal msg As String)
-    MsgBox msg, vbCritical
-    End
-End Sub
-
-' yyyy.mm.dd hh:mm -> Date
-Private Function ParseDateTimeDot(ByVal s As String) As Date
-    s = Trim$(s)
-
-    Dim a() As String
-    a = Split(s, " ")
-    If UBound(a) <> 1 Then ErrStop "³¯Â¥½Ã°£ ÆÄ½Ì ½ÇÆĞ: " & s
-
-    Dim dtPart As String, tmPart As String
-    dtPart = a(0)
-    tmPart = a(1)
-
-    Dim d() As String
-    d = Split(dtPart, ".")
-    If UBound(d) <> 2 Then ErrStop "³¯Â¥ ÆÄ½Ì ½ÇÆĞ: " & dtPart
-
-    Dim t() As String
-    t = Split(tmPart, ":")
-    If UBound(t) <> 1 Then ErrStop "½Ã°£ ÆÄ½Ì ½ÇÆĞ: " & tmPart
-
-    Dim yy As Long, mm As Long, dd As Long, hh As Long, nn As Long
-    yy = CLng(d(0))
-    mm = CLng(d(1))
-    dd = CLng(d(2))
-    hh = CLng(t(0))
-    nn = CLng(t(1))
-
-    ParseDateTimeDot = DateSerial(yy, mm, dd) + TimeSerial(hh, nn, 0)
-End Function
-
-' ¼¿ °ªÀÌ ³¯Â¥/½Ã°£ °ªÀÏ ¼öµµ ÀÖÀ¸´Ï "yyyy.mm.dd hh:mm" ¹®ÀÚ¿­·Î ¾ÈÀü º¯È¯
-Private Function GetCellAsDateTimeDot(ByVal cell As Range) As String
-    If IsDate(cell.Value) Then
-        GetCellAsDateTimeDot = Format$(CDate(cell.Value), "yyyy.mm.dd hh:nn")
-    Else
-        GetCellAsDateTimeDot = Trim$(CStr(cell.Value))
-    End If
-End Function
-
-' out ½ÃÆ® 1Çà¿¡¼­ BºÎÅÍ "Ã¹ ºó¼¿ Á÷Àü" ¿­ ¹İÈ¯
-Private Function GetHeaderLastCol(ByVal ws As Worksheet, ByVal headerRow As Long, ByVal startCol As Long) As Long
-    Dim c As Long
-    c = startCol
-
-    If Trim$(CStr(ws.Cells(headerRow, c).Value)) = "" Then
-        GetHeaderLastCol = startCol - 1
-        Exit Function
-    End If
-
-    Do While Trim$(CStr(ws.Cells(headerRow, c).Value)) <> ""
-        c = c + 1
-    Loop
-    GetHeaderLastCol = c - 1
-End Function
-
-' out A¿­(AstartRowºÎÅÍ, ºó ¼¿ Àü)¿¡¼­ keyVal Ã£±â
-' - 0°³: 0 ¹İÈ¯
-' - 1°³: ÇØ´ç Çà ¹İÈ¯
-' - 2°³ ÀÌ»ó: ¿¡·¯ Á¾·á
-Private Function FindNameRowInOutA(ByVal ws As Worksheet, ByVal keyVal As String, ByVal startRow As Long) As Long
-    Dim endRow As Long
-    endRow = startRow
-    Do While Trim$(CStr(ws.Cells(endRow, "A").Value)) <> ""
-        endRow = endRow + 1
-    Loop
-    endRow = endRow - 1
-    If endRow < startRow Then ErrStop "'out' ½ÃÆ® A" & startRow & "ºÎÅÍ µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù."
-
-    Dim rng As Range
-    Set rng = ws.Range("A" & startRow & ":A" & endRow)
-
-    Dim cnt As Long
-    cnt = Application.WorksheetFunction.CountIf(rng, keyVal)
-
-    If cnt = 0 Then
-        FindNameRowInOutA = 0
-        Exit Function
-    End If
-    If cnt <> 1 Then
-        ErrStop "out_a(A" & startRow & "~)¿¡¼­ '" & keyVal & "' ÀÏÄ¡ °³¼ö=" & cnt & " (2°³ ÀÌ»ó)"
-    End If
-
-    Dim f As Range
-    Set f = rng.Find(What:=keyVal, LookIn:=xlValues, LookAt:=xlWhole)
-    If f Is Nothing Then
-        FindNameRowInOutA = 0
-    Else
-        FindNameRowInOutA = f.Row
-    End If
-End Function
-
-' Çì´õ(1Çà B~lastCol)¿¡¼­ "m/d(¿äÀÏ)"ÀÇ ¿ù/ÀÏÀÌ (m,d)¿Í ÀÏÄ¡ÇÏ´Â ¼¿À» À¯ÀÏÇÏ°Ô Ã£±â
-Private Function FindUniqueHeaderByMonthDay(ByVal ws As Worksheet, ByVal headerRow As Long, ByVal startCol As Long, ByVal lastCol As Long, ByVal m As Long, ByVal d As Long) As Range
-    Dim c As Long, cnt As Long
-    Dim hit As Range
-
-    For c = startCol To lastCol
-        Dim cell As Range
-        Set cell = ws.Cells(headerRow, c)
-
-        Dim hm As Long, hd As Long
-        ExtractMonthDayFromHeaderCell cell, hm, hd
-
-        If hm = m And hd = d Then
-            cnt = cnt + 1
-            Set hit = cell
-        End If
-    Next c
-
-    If cnt <> 1 Then
-        ErrStop "out_b(1Çà)¿¡¼­ " & m & "/" & d & " ÀÏÄ¡ °³¼ö=" & cnt & " (¾ø°Å³ª 2°³ ÀÌ»ó)"
-    End If
-
-    Set FindUniqueHeaderByMonthDay = hit
-End Function
-
-' Çì´õ ¼¿¿¡¼­ ¿ù/ÀÏ ÃßÃâ (Ç¥½Ã ÅØ½ºÆ® "1/4(¸ñ)" ±âÁØ)
-Private Sub ExtractMonthDayFromHeaderCell(ByVal cell As Range, ByRef outM As Long, ByRef outD As Long)
-    Dim txt As String
-    txt = cell.Text
-    If Len(Trim$(txt)) = 0 Then txt = CStr(cell.Value)
-
-    If IsDate(cell.Value) Then
-        outM = Month(CDate(cell.Value))
-        outD = day(CDate(cell.Value))
-        Exit Sub
-    End If
-
-    Dim p As Long
-    p = InStr(1, txt, "/", vbTextCompare)
-    If p = 0 Then ErrStop "Çì´õ ÆÄ½Ì ½ÇÆĞ(½½·¡½Ã ¾øÀ½): " & cell.Address(0, 0) & " [" & txt & "]"
-
-    outM = CLng(Val(Left$(txt, p - 1)))
-    outD = CLng(Val(Mid$(txt, p + 1))) ' µÚ¿¡ "(¿äÀÏ)" ÀÖ¾îµµ Val·Î Àß¸²
-End Sub
-
-' Çì´õ ¼¿¿¡¼­ ¿äÀÏ ÇÑ ±ÛÀÚ("Åä","ÀÏ",...) ÃßÃâ
-Private Function ExtractWeekdayChar(ByVal cell As Range) As String
-    Dim txt As String
-    txt = cell.Text
-    If Len(Trim$(txt)) = 0 Then txt = CStr(cell.Value)
-
-    Dim p1 As Long, p2 As Long
-    p1 = InStr(1, txt, "(", vbTextCompare)
-    p2 = InStr(1, txt, ")", vbTextCompare)
-
-    If p1 > 0 And p2 > p1 Then
-        ExtractWeekdayChar = Mid$(txt, p1 + 1, 1)
-    Else
-        ExtractWeekdayChar = ""
-    End If
-End Function
-
-' ±âÁ¸ ÅØ½ºÆ® »ö À¯Áö + »õ·Î Ãß°¡µÈ newText ºÎºĞ¸¸ color·Î ÁöÁ¤
-Private Sub AppendColoredLine(ByVal target As Range, ByVal newText As String, ByVal color As Long)
-    Dim oldLen As Long, startPos As Long, addLen As Long
-    oldLen = Len(CStr(target.Value))
-
-    If Len(Trim$(CStr(target.Value))) > 0 Then
-        target.Value = CStr(target.Value) & vbLf & newText
-        startPos = oldLen + 2 ' vbLf(1) + 1-based º¸Á¤
-    Else
-        target.Value = newText
-        startPos = 1
-    End If
-
-    addLen = Len(newText)
-    target.WrapText = True
-    target.Characters(startPos, addLen).Font.color = color
+InvalidFormat:
+    RaiseValidation context, "ì´ë¦„ì˜ êµ¬ë¶„ ë²ˆí˜¸Â·ê´„í˜¸Â·ì•„ì´ë”” ë§ˆìŠ¤í‚¹ í˜•ì‹ì„ í™•ì¸í•˜ì„¸ìš”. " & _
+                             "ì˜ˆ: í™ê¸¸ë™01 (abc****)"
 End Sub
