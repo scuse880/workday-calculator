@@ -1,0 +1,52 @@
+{
+  "results": [
+    {
+      "test": "dropdown_changes_cell_B3",
+      "passed": true
+    },
+    {
+      "test": "typing_blocked_B3",
+      "passed": true
+    },
+    {
+      "test": "dropdown_changes_cell_B5",
+      "passed": true
+    },
+    {
+      "test": "typing_blocked_B5",
+      "passed": true
+    },
+    {
+      "test": "dropdown_changes_cell_B6",
+      "passed": true
+    },
+    {
+      "test": "typing_blocked_B6",
+      "passed": true
+    },
+    {
+      "test": "dropdown_changes_cell_D3",
+      "passed": true
+    },
+    {
+      "test": "typing_blocked_D3",
+      "passed": true
+    },
+    {
+      "test": "dropdown_changes_cell_D5",
+      "passed": true
+    },
+    {
+      "test": "typing_blocked_D5",
+      "passed": true
+    },
+    {
+      "test": "dropdown_changes_cell_D6",
+      "passed": true
+    },
+    {
+      "test": "typing_blocked_D6",
+      "passed": true
+    }
+  ]
+}

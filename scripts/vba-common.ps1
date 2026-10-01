@@ -30,13 +30,20 @@ function Get-VbaSources([string]$Folder, [int]$CodePage) {
         if ($text -notmatch '(?m)^Option Explicit\s*$') { throw ('Option Explicit 누락: ' + $f.Name) }
         $null = $ansi.GetBytes($text) # Fail before opening Excel if encoding would lose data.
         $type = switch ($f.Extension.ToLowerInvariant()) { '.bas' {1} '.cls' {2} '.frm' {3} }
+        $document = [regex]::Match($text, '(?m)^\s*''\s*@DocumentModule:([^\r\n]+)\s*$')
+        $documentTarget = ''
+        if ($document.Success) {
+            if ($type -ne 2) { throw ('문서 모듈은 cls 파일이어야 합니다: ' + $f.Name) }
+            $type = 100
+            $documentTarget = $document.Groups[1].Value.Trim()
+        }
         $runtime = $type -eq 3 -and $text -match '(?m)^\s*''\s*@RuntimeForm\s*$'
         $code = ''
-        if ($runtime) { $code = [regex]::Replace($text.Substring($text.IndexOf('Option Explicit')), '(?m)^Attribute [^\r\n]+\r?\n?', '') }
+        if ($runtime -or $type -eq 100) { $code = [regex]::Replace($text.Substring($text.IndexOf('Option Explicit')), '(?m)^Attribute [^\r\n]+\r?\n?', '') }
         if ($type -eq 3 -and -not $runtime -and $text -match '"([^"\r\n]+\.frx)"') {
             if (-not (Test-Path -LiteralPath (Join-Path $f.DirectoryName $Matches[1]))) { throw ('FRX 파일 누락: ' + $Matches[1]) }
         }
-        [pscustomobject]@{ Name=$name; Type=$type; File=$f; Text=$text; Code=$code; Runtime=$runtime }
+        [pscustomobject]@{ Name=$name; Type=$type; File=$f; Text=$text; Code=$code; Runtime=$runtime; DocumentTarget=$documentTarget }
     }
 }
 function Assert-VbaWorkbookClosed([string]$Path) {

@@ -189,10 +189,10 @@ Public Sub ReadBaseSettings(ByRef workMonth As Date, ByRef arrivalMinutes As Lon
     arrivalMinutes = 0
     departureMinutes = 0
     If Not needHours Then Exit Sub
-    h1 = ReadIntegerCell(ws.Range("B5"), vbNullString, 0, 23, False)
-    n1 = ReadIntegerCell(ws.Range("D5"), vbNullString, 0, 59, False)
-    h2 = ReadIntegerCell(ws.Range("B6"), vbNullString, 0, 23, False)
-    n2 = ReadIntegerCell(ws.Range("D6"), vbNullString, 0, 59, False)
+    h1 = ReadIntegerCell(ws.Range("B5"), "시", 0, 23, False)
+    n1 = ReadIntegerCell(ws.Range("D5"), "분", 0, 59, False)
+    h2 = ReadIntegerCell(ws.Range("B6"), "시", 0, 23, False)
+    n2 = ReadIntegerCell(ws.Range("D6"), "분", 0, 59, False)
     arrivalMinutes = h1 * 60 + n1
     departureMinutes = h2 * 60 + n2
     If arrivalMinutes >= departureMinutes Then
@@ -203,6 +203,7 @@ End Sub
 Private Function ReadIntegerCell(ByVal cell As Range, ByVal suffix As String, ByVal minimum As Long, ByVal maximum As Long, ByVal fourDigits As Boolean) As Long
     Dim text As String, match As Object, pattern As String, number As Double
     text = CellText(cell)
+    If text = "선택" Or Len(text) = 0 Then RaiseValidation CellContext(cell), "드롭다운에서 값을 선택하세요."
     If fourDigits Then
         pattern = "^([0-9]{4})" & suffix & "?$"
     ElseIf Len(suffix) > 0 Then
@@ -466,8 +467,7 @@ Public Function GetOrCreateSheet(ByVal sheetName As String) As Worksheet
     Set ws = ThisWorkbook.Worksheets(sheetName)
     On Error GoTo 0
     If ws Is Nothing Then
-        Set ws = ThisWorkbook.Worksheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
-        ws.Name = sheetName
+        Set ws = CreateProtectedWorkbookSheet(sheetName)
     End If
     Set GetOrCreateSheet = ws
 End Function
@@ -478,6 +478,6 @@ Public Sub ClearCalculationResults()
     Set ws = ThisWorkbook.Worksheets("작업결과")
     On Error GoTo 0
     If ws Is Nothing Then Exit Sub
-    If ws.ProtectContents Then RaiseValidation "작업결과", "시트 보호를 해제한 후 다시 실행하세요."
+    If ws.ProtectContents And Not ws.ProtectionMode Then RaiseValidation "작업결과", "시트 보호를 해제한 후 다시 실행하세요."
     ws.UsedRange.Clear
 End Sub

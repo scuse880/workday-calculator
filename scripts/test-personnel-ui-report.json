@@ -1,0 +1,164 @@
+[
+  {
+    "name": "full_compile",
+    "actual": false,
+    "expected": false,
+    "passed": true
+  },
+  {
+    "name": "setup",
+    "actual": "ok",
+    "expected": "ok",
+    "passed": true
+  },
+  {
+    "name": "form_caption",
+    "actual": "인사변동자 등록",
+    "expected": "인사변동자 등록",
+    "passed": true
+  },
+  {
+    "name": "month_title",
+    "actual": "2026년 8월",
+    "expected": "2026년 8월",
+    "passed": true
+  },
+  {
+    "name": "dropdown_rows",
+    "actual": 25,
+    "expected": 25,
+    "passed": true
+  },
+  {
+    "name": "initial_employees",
+    "actual": 77,
+    "expected": 77,
+    "passed": true
+  },
+  {
+    "name": "initial_registered",
+    "actual": 73,
+    "expected": 73,
+    "passed": true
+  },
+  {
+    "name": "hook_installed",
+    "actual": true,
+    "expected": true,
+    "passed": true
+  },
+  {
+    "name": "open_syllable_filter",
+    "actual": 4,
+    "expected": 4,
+    "passed": true
+  },
+  {
+    "name": "filter_not_committed",
+    "actual": 0,
+    "expected": 0,
+    "passed": true
+  },
+  {
+    "name": "duplicate_index_identity",
+    "actual": 4,
+    "expected": 4,
+    "passed": true
+  },
+  {
+    "name": "saved_registered_count",
+    "actual": 74,
+    "expected": 74,
+    "passed": true
+  },
+  {
+    "name": "saved_period",
+    "actual": "2026-08-06~2026-08-08",
+    "expected": "2026-08-06~2026-08-08",
+    "passed": true
+  },
+  {
+    "name": "clear_registered_count",
+    "actual": 73,
+    "expected": 73,
+    "passed": true
+  },
+  {
+    "name": "initial_consonant_filter",
+    "actual": 77,
+    "expected": 77,
+    "passed": true
+  },
+  {
+    "name": "prefix_duplicate_filter",
+    "actual": 2,
+    "expected": 2,
+    "passed": true
+  },
+  {
+    "name": "first_duplicate_identity",
+    "actual": 2,
+    "expected": 2,
+    "passed": true
+  },
+  {
+    "name": "empty_filter",
+    "actual": 0,
+    "expected": 0,
+    "passed": true
+  },
+  {
+    "name": "empty_filter_no_employee",
+    "actual": 0,
+    "expected": 0,
+    "passed": true
+  },
+  {
+    "name": "restore_all_filter",
+    "actual": 77,
+    "expected": 77,
+    "passed": true
+  },
+  {
+    "name": "dropdown_actual_wheel_down",
+    "actual": true,
+    "expected": true,
+    "passed": true
+  },
+  {
+    "name": "dropdown_actual_wheel_up",
+    "actual": true,
+    "expected": true,
+    "passed": true
+  },
+  {
+    "name": "registered_actual_wheel_down",
+    "actual": true,
+    "expected": true,
+    "passed": true
+  },
+  {
+    "name": "registered_actual_wheel_up",
+    "actual": true,
+    "expected": true,
+    "passed": true
+  },
+  {
+    "name": "registered_click_identity",
+    "actual": 5,
+    "expected": 5,
+    "passed": true
+  },
+  {
+    "name": "close_hook_cleanup",
+    "actual": false,
+    "expected": false,
+    "passed": true
+  },
+  {
+    "name": "dispose_hook_cleanup",
+    "actual": false,
+    "expected": false,
+    "passed": true
+  }
+]

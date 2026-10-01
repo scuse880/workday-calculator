@@ -1,0 +1,306 @@
+{
+  "results": [
+    {
+      "test": "full_compile",
+      "passed": true
+    },
+    {
+      "test": "activation_preserves_work_values",
+      "passed": true
+    },
+    {
+      "test": "settings_placeholder_preserves_column_1",
+      "passed": true
+    },
+    {
+      "test": "settings_placeholder_preserves_column_2",
+      "passed": true
+    },
+    {
+      "test": "settings_placeholder_preserves_column_3",
+      "passed": true
+    },
+    {
+      "test": "settings_placeholder_preserves_column_4",
+      "passed": true
+    },
+    {
+      "test": "initialization_defaults_all_six",
+      "passed": true
+    },
+    {
+      "test": "settings_placeholder_is_idempotent",
+      "passed": true
+    },
+    {
+      "test": "protected_작업",
+      "passed": true
+    },
+    {
+      "test": "protected_방학중근무",
+      "passed": true
+    },
+    {
+      "test": "protected_사용방법 및 주의사항",
+      "passed": true
+    },
+    {
+      "test": "protected_설정",
+      "passed": true
+    },
+    {
+      "test": "protected_공휴일",
+      "passed": true
+    },
+    {
+      "test": "structure_protected",
+      "passed": true
+    },
+    {
+      "test": "very_hidden_설정",
+      "passed": true
+    },
+    {
+      "test": "very_hidden_공휴일",
+      "passed": true
+    },
+    {
+      "test": "selection_only_B3",
+      "passed": true
+    },
+    {
+      "test": "matching_row_and_dropdown_height_B3",
+      "passed": true,
+      "row_height": 18.75,
+      "dropdown_height": 18.75
+    },
+    {
+      "test": "placeholder_selected_B3",
+      "passed": true
+    },
+    {
+      "test": "selector_preserves_all_options_B3",
+      "passed": true,
+      "options": 81
+    },
+    {
+      "test": "selection_only_B5",
+      "passed": true
+    },
+    {
+      "test": "matching_row_and_dropdown_height_B5",
+      "passed": true,
+      "row_height": 18.75,
+      "dropdown_height": 18.75
+    },
+    {
+      "test": "placeholder_selected_B5",
+      "passed": true
+    },
+    {
+      "test": "selector_preserves_all_options_B5",
+      "passed": true,
+      "options": 25
+    },
+    {
+      "test": "selection_only_B6",
+      "passed": true
+    },
+    {
+      "test": "matching_row_and_dropdown_height_B6",
+      "passed": true,
+      "row_height": 18.75,
+      "dropdown_height": 18.75
+    },
+    {
+      "test": "placeholder_selected_B6",
+      "passed": true
+    },
+    {
+      "test": "selector_preserves_all_options_B6",
+      "passed": true,
+      "options": 25
+    },
+    {
+      "test": "selection_only_D3",
+      "passed": true
+    },
+    {
+      "test": "matching_row_and_dropdown_height_D3",
+      "passed": true,
+      "row_height": 18.75,
+      "dropdown_height": 18.75
+    },
+    {
+      "test": "placeholder_selected_D3",
+      "passed": true
+    },
+    {
+      "test": "selector_preserves_all_options_D3",
+      "passed": true,
+      "options": 13
+    },
+    {
+      "test": "selection_only_D5",
+      "passed": true
+    },
+    {
+      "test": "matching_row_and_dropdown_height_D5",
+      "passed": true,
+      "row_height": 18.75,
+      "dropdown_height": 18.75
+    },
+    {
+      "test": "placeholder_selected_D5",
+      "passed": true
+    },
+    {
+      "test": "selector_preserves_all_options_D5",
+      "passed": true,
+      "options": 13
+    },
+    {
+      "test": "selection_only_D6",
+      "passed": true
+    },
+    {
+      "test": "matching_row_and_dropdown_height_D6",
+      "passed": true,
+      "row_height": 18.75,
+      "dropdown_height": 18.75
+    },
+    {
+      "test": "placeholder_selected_D6",
+      "passed": true
+    },
+    {
+      "test": "selector_preserves_all_options_D6",
+      "passed": true,
+      "options": 13
+    },
+    {
+      "test": "other_work_cells_locked",
+      "passed": true
+    },
+    {
+      "test": "vacation_editable_input",
+      "passed": true
+    },
+    {
+      "test": "vacation_locked_header_and_outside",
+      "passed": true
+    },
+    {
+      "test": "header_B2",
+      "passed": true
+    },
+    {
+      "test": "header_C2",
+      "passed": true
+    },
+    {
+      "test": "header_D2",
+      "passed": true
+    },
+    {
+      "test": "vba_value_and_format_write",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_01",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_02",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_03",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_04",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_05",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_06",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_07",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_08",
+      "passed": true
+    },
+    {
+      "test": "vacation_border_09",
+      "passed": true
+    },
+    {
+      "test": "user_interface_only_is_not_persisted",
+      "passed": true
+    },
+    {
+      "test": "reopen_defaults_all_six",
+      "passed": true
+    },
+    {
+      "test": "reopen_defaults_all_six_controls",
+      "passed": true
+    },
+    {
+      "test": "reopen_settings_remain_unchanged",
+      "passed": true
+    },
+    {
+      "test": "actual_activate_preserves_selection",
+      "passed": true
+    },
+    {
+      "test": "reopen_restores_작업",
+      "passed": true
+    },
+    {
+      "test": "reopen_restores_방학중근무",
+      "passed": true
+    },
+    {
+      "test": "reopen_restores_사용방법 및 주의사항",
+      "passed": true
+    },
+    {
+      "test": "reopen_restores_설정",
+      "passed": true
+    },
+    {
+      "test": "reopen_restores_공휴일",
+      "passed": true
+    },
+    {
+      "test": "reopen_vba_write",
+      "passed": true
+    },
+    {
+      "test": "reopen_border_delete",
+      "passed": true,
+      "bottom": -4142,
+      "row19_edges": [
+        -4142,
+        -4142,
+        -4142,
+        -4142
+      ],
+      "events": true
+    },
+    {
+      "test": "original_workbook_unchanged",
+      "passed": true
+    }
+  ]
+}

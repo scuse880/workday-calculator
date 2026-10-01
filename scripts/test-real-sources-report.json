@@ -1,0 +1,404 @@
+{
+  "fixture_count": 4,
+  "production_dialog_adapters": [
+    "file_picker",
+    "messages",
+    "duplicate_neis_ids",
+    "first_trip_candidate"
+  ],
+  "results": [
+    {
+      "test": "display_units_settings_regression_01",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_02",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_03",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_04",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_05",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_06",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_07",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_08",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_09",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_10",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_11",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_12",
+      "passed": true
+    },
+    {
+      "test": "display_units_settings_regression_13",
+      "passed": true
+    },
+    {
+      "test": "missing_duplicate_birthdates_rejected",
+      "passed": true
+    },
+    {
+      "test": "overtime_actual_fixture",
+      "passed": true,
+      "employees": 77
+    },
+    {
+      "test": "work_status_actual_fixture",
+      "passed": true,
+      "records": 206
+    },
+    {
+      "test": "trip_actual_fixture",
+      "passed": true,
+      "records": 110
+    },
+    {
+      "test": "boundary_01",
+      "passed": true
+    },
+    {
+      "test": "boundary_02",
+      "passed": true
+    },
+    {
+      "test": "boundary_03",
+      "passed": true
+    },
+    {
+      "test": "boundary_04",
+      "passed": true
+    },
+    {
+      "test": "boundary_05",
+      "passed": true
+    },
+    {
+      "test": "boundary_06",
+      "passed": true
+    },
+    {
+      "test": "boundary_07",
+      "passed": true
+    },
+    {
+      "test": "boundary_08",
+      "passed": true
+    },
+    {
+      "test": "boundary_09",
+      "passed": true
+    },
+    {
+      "test": "boundary_10",
+      "passed": true
+    },
+    {
+      "test": "boundary_11",
+      "passed": true
+    },
+    {
+      "test": "boundary_12",
+      "passed": true
+    },
+    {
+      "test": "boundary_13",
+      "passed": true
+    },
+    {
+      "test": "boundary_14",
+      "passed": true
+    },
+    {
+      "test": "boundary_15",
+      "passed": true
+    },
+    {
+      "test": "boundary_16",
+      "passed": true
+    },
+    {
+      "test": "boundary_17",
+      "passed": true
+    },
+    {
+      "test": "boundary_18",
+      "passed": true
+    },
+    {
+      "test": "boundary_19",
+      "passed": true
+    },
+    {
+      "test": "boundary_20",
+      "passed": true
+    },
+    {
+      "test": "boundary_21",
+      "passed": true
+    },
+    {
+      "test": "boundary_22",
+      "passed": true
+    },
+    {
+      "test": "boundary_23",
+      "passed": true
+    },
+    {
+      "test": "boundary_24",
+      "passed": true
+    },
+    {
+      "test": "boundary_25",
+      "passed": true
+    },
+    {
+      "test": "boundary_26",
+      "passed": true
+    },
+    {
+      "test": "boundary_27",
+      "passed": true
+    },
+    {
+      "test": "boundary_28",
+      "passed": true
+    },
+    {
+      "test": "boundary_29",
+      "passed": true
+    },
+    {
+      "test": "boundary_30",
+      "passed": true
+    },
+    {
+      "test": "boundary_31",
+      "passed": true
+    },
+    {
+      "test": "boundary_32",
+      "passed": true
+    },
+    {
+      "test": "boundary_33",
+      "passed": true
+    },
+    {
+      "test": "boundary_34",
+      "passed": true
+    },
+    {
+      "test": "boundary_35",
+      "passed": true
+    },
+    {
+      "test": "boundary_36",
+      "passed": true
+    },
+    {
+      "test": "boundary_37",
+      "passed": true
+    },
+    {
+      "test": "boundary_38",
+      "passed": true
+    },
+    {
+      "test": "boundary_39",
+      "passed": true
+    },
+    {
+      "test": "boundary_40",
+      "passed": true
+    },
+    {
+      "test": "boundary_41",
+      "passed": true
+    },
+    {
+      "test": "boundary_42",
+      "passed": true
+    },
+    {
+      "test": "boundary_43",
+      "passed": true
+    },
+    {
+      "test": "boundary_44",
+      "passed": true
+    },
+    {
+      "test": "boundary_45",
+      "passed": true
+    },
+    {
+      "test": "boundary_46",
+      "passed": true
+    },
+    {
+      "test": "boundary_47",
+      "passed": true
+    },
+    {
+      "test": "boundary_48",
+      "passed": true
+    },
+    {
+      "test": "boundary_49",
+      "passed": true
+    },
+    {
+      "test": "boundary_50",
+      "passed": true
+    },
+    {
+      "test": "holiday_01",
+      "passed": true
+    },
+    {
+      "test": "holiday_02",
+      "passed": true
+    },
+    {
+      "test": "holiday_03",
+      "passed": true
+    },
+    {
+      "test": "holiday_04",
+      "passed": true
+    },
+    {
+      "test": "holiday_05",
+      "passed": true
+    },
+    {
+      "test": "holiday_06",
+      "passed": true
+    },
+    {
+      "test": "calculation_without_holiday_setup",
+      "passed": true,
+      "total_days": 966
+    },
+    {
+      "test": "personnel_period_excluded",
+      "passed": true
+    },
+    {
+      "test": "vacation_generated_valid_row",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_01",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_02",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_03",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_04",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_05",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_06",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_07",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_08",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_09",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_10",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_11",
+      "passed": true
+    },
+    {
+      "test": "vacation_error_preserves_previous_12",
+      "passed": true
+    },
+    {
+      "test": "calculation_with_vacation",
+      "passed": true
+    },
+    {
+      "test": "cancelled_file_preserves_work_status",
+      "passed": true
+    },
+    {
+      "test": "non_exact_complete_rows_skipped_before_parsing",
+      "passed": true
+    },
+    {
+      "test": "malformed_completed_period_preserves_previous",
+      "passed": true
+    },
+    {
+      "test": "four_identity_mismatches_one_person_popup",
+      "passed": true,
+      "popups": 2
+    },
+    {
+      "test": "identity_warning_has_neis_label_without_candidate_roster",
+      "passed": true
+    },
+    {
+      "test": "long_warning_one_person_popup_keeps_all_rows",
+      "passed": true,
+      "popups": 2
+    },
+    {
+      "test": "employee_reimport_resets_records",
+      "passed": true
+    }
+  ],
+  "full_compile_passed": true,
+  "passed": true,
+  "original_hashes_unchanged": true
+}

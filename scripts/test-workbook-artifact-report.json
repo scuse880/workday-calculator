@@ -1,0 +1,47 @@
+{
+  "results": [
+    {
+      "test": "saved_sheet_names_and_order_unchanged",
+      "passed": true
+    },
+    {
+      "test": "saved_cells_only_requested_defaults_and_list_shift",
+      "passed": true
+    },
+    {
+      "test": "all_four_testsource_files_identical_to_baseline",
+      "passed": true,
+      "files": 4
+    },
+    {
+      "test": "actual_workbook_open_defaults_all_six",
+      "passed": true
+    },
+    {
+      "test": "actual_workbook_reopen_user_interface_only",
+      "passed": true
+    },
+    {
+      "test": "actual_workbook_row_and_control_heights",
+      "passed": true
+    },
+    {
+      "test": "actual_workbook_contains_current_source_code",
+      "passed": true,
+      "components": 22,
+      "mismatches": []
+    },
+    {
+      "test": "actual_workbook_full_compile",
+      "passed": true
+    },
+    {
+      "test": "actual_workbook_activation_preserves_selection",
+      "passed": true
+    },
+    {
+      "test": "actual_workbook_readonly_verification_did_not_save",
+      "passed": true
+    }
+  ]
+}

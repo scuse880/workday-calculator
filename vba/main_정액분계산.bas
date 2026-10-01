@@ -21,9 +21,6 @@ Public Sub 근무일수계산()
     If Not gWorkStatusLoaded Then RaiseValidation "근무일수 계산", "근무상황목록을 먼저 불러오세요."
     If Not gTripLoaded Then RaiseValidation "근무일수 계산", "출장 근무상황부를 먼저 불러오세요."
     Set holidays = LoadHolidays(workMonth, saved)
-    If Not saved Then
-        RaiseValidation "근무일수 계산", "현재 작업년월의 공휴일을 확인한 후 저장 및 닫기를 눌러주세요."
-    End If
     Set employees = GetEmployeesInOrder()
     Set dailyResults = NewDictionary()
     numberOfDays = Day(DateSerial(Year(workMonth), Month(workMonth) + 1, 0))

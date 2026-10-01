@@ -4,7 +4,7 @@ Option Explicit
 Public Sub LoadWorkStatusRecords()
     Dim workMonth As Date, startMinute As Long, endMinute As Long
     Dim sourceBook As Workbook, sourceSheet As Worksheet, openedByCode As Boolean
-    Dim staged As Object, warnings As Collection, group As Collection, records As Collection
+    Dim staged As Object, warnings As Object, group As Collection, records As Collection
     Dim employee As CEmployee, candidate As Variant, record As CWorkStatusRecord
     Dim r As Long, count As Long, rawName As String, name As String, rawId As String
     Dim normalizedId As String, validId As Boolean, reason As String, warning As Variant
@@ -16,11 +16,12 @@ Public Sub LoadWorkStatusRecords()
     If sourceBook Is Nothing Then Exit Sub
     Set sourceSheet = sourceBook.Worksheets(1)
     Set staged = NewRecordStage()
-    Set warnings = New Collection
+    Set warnings = NewDictionary()
     r = 2
     Do While r <= sourceSheet.Rows.count
+        If IsBlankValue(sourceSheet.Cells(r, 3).Value2) Then Exit Do
+        If Not IsCompletedWorkStatus(sourceSheet.Cells(r, 11).Value2) Then GoTo NextRow
         rawName = CellText(sourceSheet.Cells(r, 3))
-        If Len(rawName) = 0 Then Exit Do
         reason = CellText(sourceSheet.Cells(r, 7))
         If InStr(reason, "육아시간") = 0 And InStr(reason, "모성보호시간") = 0 Then
             ReadWorkStatusIdentity rawName, name, rawId, validId, normalizedId
@@ -40,7 +41,7 @@ Public Sub LoadWorkStatusRecords()
                         Next candidate
                     End If
                     If employee Is Nothing Then
-                        warnings.Add IdentityWarning(sourceSheet, r, name, rawId, group)
+                        AddIdentityWarning warnings, sourceSheet, r, name, rawId, validId, normalizedId, group
                     End If
                 End If
                 If Not employee Is Nothing Then
@@ -54,16 +55,15 @@ Public Sub LoadWorkStatusRecords()
                 End If
             End If
         End If
+NextRow:
         r = r + 1
     Loop
     CloseInputWorkbook sourceBook, openedByCode
     Set sourceBook = Nothing
     CommitRecordStage staged, "WorkStatus"
     If warnings.count > 0 Then
-        MsgBox "근무상황목록에서 나이스 개인번호가 등록되지 않았거나 일치하지 않는 교직원이 있습니다. 해당 기록은 제외되었습니다." & _
-               vbCrLf & "제외한 " & warnings.count & "개 행의 내용을 차례로 표시합니다.", vbExclamation, "근무상황목록 확인"
-        For Each warning In warnings
-            ShowTextPages CStr(warning), "제외한 근무상황 기록"
+        For Each warning In warnings.Keys
+            ShowIdentityWarning CStr(warnings(warning)), "제외한 근무상황 기록"
         Next warning
     End If
     MsgBox "근무상황목록 " & count & "건을 불러왔습니다.", vbInformation, "근무상황목록 완료"
@@ -73,6 +73,13 @@ Failed:
     CloseInputWorkbook sourceBook, openedByCode
     MsgBox failure & vbCrLf & "기존 근무상황 기록은 유지됩니다.", vbExclamation, "근무상황목록 중단"
 End Sub
+
+' CellText의 공백 제거를 사용하지 않는다. 원본 값이 정확히 "완결"인 행만 읽는다.
+Public Function IsCompletedWorkStatus(ByVal value As Variant) As Boolean
+    If IsError(value) Or IsNull(value) Or IsEmpty(value) Then Exit Function
+    If VarType(value) <> vbString Then Exit Function
+    IsCompletedWorkStatus = (StrComp(CStr(value), "완결", vbBinaryCompare) = 0)
+End Function
 
 Private Sub ReadWorkStatusIdentity(ByVal raw As String, ByRef name As String, ByRef rawId As String, ByRef validId As Boolean, ByRef normalizedId As String)
     Dim lines As Variant, candidateId As String
@@ -108,28 +115,57 @@ Private Sub ReadWorkStatusPeriod(ByVal cell As Range, ByRef startAt As Date, ByR
     ValidateInterval startAt, endAt, CellContext(cell)
 End Sub
 
-Private Function IdentityWarning(ByVal ws As Worksheet, ByVal rowNumber As Long, ByVal name As String, ByVal rawId As String, ByVal candidates As Collection) As String
-    Dim text As String, item As Variant
-    text = CellContext(ws.Cells(rowNumber, 3)) & vbCrLf & "이름: " & name & vbCrLf & "원본 개인번호: "
+Private Sub AddIdentityWarning(ByVal warnings As Object, ByVal ws As Worksheet, ByVal rowNumber As Long, _
+                               ByVal name As String, ByVal rawId As String, ByVal validId As Boolean, _
+                               ByVal normalizedId As String, ByVal candidates As Collection)
+    Dim key As String, identity As String, detail As String
+    identity = rawId
+    If validId Then identity = normalizedId
+    key = name & vbNullChar & identity
+    If Not warnings.Exists(key) Then
+        warnings.Add key, IdentityWarning(name, rawId, candidates) & vbCrLf & vbCrLf & "제외한 행 / 직종:"
+    End If
+    detail = CellContext(ws.Cells(rowNumber, 3)) & " / " & CellText(ws.Cells(rowNumber, 4))
+    If Len(rawId) = 0 Then
+        detail = detail & " / 나이스 개인번호: (없음)"
+    Else
+        detail = detail & " / 나이스 개인번호: " & rawId
+    End If
+    warnings(key) = CStr(warnings(key)) & vbCrLf & detail
+End Sub
+
+Private Function IdentityWarning(ByVal name As String, ByVal rawId As String, ByVal candidates As Collection) As String
+    Dim text As String
+    text = "근무상황목록에서 나이스 개인번호가 등록되지 않았거나 일치하지 않는 교직원이 있습니다. 해당 기록은 제외되었습니다." & _
+           vbCrLf & vbCrLf & "이름: " & name & vbCrLf & "나이스 개인번호: "
     If Len(rawId) = 0 Then
         text = text & "(없음)"
     Else
         text = text & rawId
     End If
-    text = text & vbCrLf & "직종: " & CellText(ws.Cells(rowNumber, 4)) & vbCrLf & "등록된 동명이인:"
-    For Each item In candidates
-        text = text & vbCrLf & item.Name & "(" & item.Birthdate & ") / " & item.NeisPersonId
-    Next item
     IdentityWarning = text
 End Function
 
-Private Sub ShowTextPages(ByVal text As String, ByVal title As String)
-    Dim position As Long, page As Long, total As Long
-    total = (Len(text) + 799) \ 800
-    If total = 0 Then total = 1
-    position = 1
-    For page = 1 To total
-        MsgBox Mid$(text, position, 800), vbExclamation, title & " (" & page & "/" & total & ")"
-        position = position + 800
-    Next page
+Private Sub ShowIdentityWarning(ByVal text As String, ByVal title As String)
+    Dim dialog As frmWorkStatusWarning, errorNumber As Long, errorText As String
+    If Len(text) <= 800 Then
+        MsgBox text, vbExclamation, title
+        Exit Sub
+    End If
+    ' MsgBox 길이 한도로 긴 경고가 잘리거나 같은 사람 팝업이 여러 번 뜨지 않게 한다.
+    On Error GoTo Failed
+    Set dialog = New frmWorkStatusWarning
+    dialog.Configure text, title
+    dialog.Show vbModal
+    Unload dialog
+    Set dialog = Nothing
+    Exit Sub
+Failed:
+    errorNumber = Err.Number
+    errorText = Err.Description
+    On Error Resume Next
+    If Not dialog Is Nothing Then Unload dialog
+    Set dialog = Nothing
+    On Error GoTo 0
+    Err.Raise errorNumber, "ShowIdentityWarning", errorText
 End Sub
