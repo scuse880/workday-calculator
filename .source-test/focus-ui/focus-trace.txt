@@ -1,0 +1,14 @@
+MACRO_ENTRY | focus-ui.xlsm | 작업 | Range | $B$7 | 100 | 1,1 | events=True
+BEFORE_PICKER | focus-ui.xlsm | 작업 | Range | $B$7 | 100 | 1,1 | events=True
+AFTER_PICKER | focus-ui.xlsm | 작업 | Range | $B$7 | 100 | 1,1 | events=True
+AFTER_OPEN | 초과근무 월별집계(생년월일 표시).xlsx | sheet1 | Range | $A$1 | 100 | 1,1 | events=False
+AFTER_RESTORE | focus-ui.xlsm | 작업 | Range | $B$7 | 100 | 1,1 | events=True
+BEFORE_CLOSE | focus-ui.xlsm | 작업 | Range | $B$7 | 100 | 1,1 | events=True
+WB_ACTIVATE_ENTRY | focus-ui.xlsm | 작업 | Range | $B$7 | 100 | 1,1 | events=True
+WB_ACTIVATE_EXIT | focus-ui.xlsm | 작업결과 | Range | $M$105 | 25 | 2,2 | events=True
+AFTER_CLOSE | focus-ui.xlsm | 작업결과 | Range | $M$105 | 25 | 2,2 | events=True
+BEFORE_NEIS_NEW | focus-ui.xlsm | 작업결과 | Range | $M$105 | 25 | 2,2 | events=True
+BEFORE_NEIS_SHOW | focus-ui.xlsm | 작업결과 | Range | $M$105 | 25 | 2,2 | events=True
+NEIS_ACTIVATE | focus-ui.xlsm | 작업결과 | Range | $M$105 | 25 | 2,2 | events=True
+AFTER_NEIS_SHOW | focus-ui.xlsm | 작업결과 | Range | $M$105 | 25 | 2,2 | events=True
+CANCELLED | focus-ui.xlsm | 작업결과 | Range | $M$105 | 25 | 2,2 | events=True

@@ -1,0 +1,276 @@
+{
+  "method": "visible Excel, real worksheet button, real picker, real NEIS form",
+  "synthetic_employees": 2,
+  "results": [
+    {
+      "test": "production_with_observation_hooks_compiles",
+      "passed": true
+    },
+    {
+      "test": "success_real_button_action",
+      "passed": true,
+      "action": "LoadOvertimeEmployees"
+    },
+    {
+      "test": "success_caller_is_work_sheet",
+      "passed": true,
+      "before": {
+        "phase": "BEFORE_CLICK",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "success_focus_while_neis_is_open",
+      "passed": true,
+      "before": {
+        "phase": "BEFORE_CLICK",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      },
+      "during": {
+        "phase": "NEIS_ACTIVATE",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "success_focus_after_completion",
+      "passed": true,
+      "after": {
+        "phase": "AFTER_MACRO",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "success_production_commit_or_cancel",
+      "passed": true
+    },
+    {
+      "test": "success_source_closed",
+      "passed": true
+    },
+    {
+      "test": "cancel_real_button_action",
+      "passed": true,
+      "action": "LoadOvertimeEmployees"
+    },
+    {
+      "test": "cancel_caller_is_work_sheet",
+      "passed": true,
+      "before": {
+        "phase": "BEFORE_CLICK",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "cancel_focus_while_neis_is_open",
+      "passed": true,
+      "before": {
+        "phase": "BEFORE_CLICK",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      },
+      "during": {
+        "phase": "NEIS_ACTIVATE",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "cancel_focus_after_completion",
+      "passed": true,
+      "after": {
+        "phase": "AFTER_MACRO",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "cancel_production_commit_or_cancel",
+      "passed": true
+    },
+    {
+      "test": "cancel_source_closed",
+      "passed": true
+    },
+    {
+      "test": "close_x_real_button_action",
+      "passed": true,
+      "action": "LoadOvertimeEmployees"
+    },
+    {
+      "test": "close_x_caller_is_work_sheet",
+      "passed": true,
+      "before": {
+        "phase": "BEFORE_CLICK",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "close_x_focus_while_neis_is_open",
+      "passed": true,
+      "before": {
+        "phase": "BEFORE_CLICK",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      },
+      "during": {
+        "phase": "NEIS_ACTIVATE",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "close_x_focus_after_completion",
+      "passed": true,
+      "after": {
+        "phase": "AFTER_MACRO",
+        "workbook": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm",
+        "window": "3279410",
+        "sheet": "작업",
+        "selection": "$B$7",
+        "active_cell": "$B$7",
+        "scroll_row": "1",
+        "scroll_column": "1",
+        "zoom": "100",
+        "events": "True"
+      }
+    },
+    {
+      "test": "close_x_production_commit_or_cancel",
+      "passed": true
+    },
+    {
+      "test": "close_x_source_closed",
+      "passed": true
+    }
+  ],
+  "traces": {
+    "success": [
+      "FOCUS|BEFORE_CLICK|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|MACRO_ENTRY|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|WB_ACTIVATE_ENTRY|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|WB_ACTIVATE_EXIT|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|NEIS_ACTIVATE|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "CONTROL|txtPersonId1|518.25|450.75|258|72|212|24",
+      "CONTROL|txtPersonId2|518.25|450.75|258|102|212|24",
+      "CONTROL|cmdConfirm|518.25|450.75|314|414|90|26",
+      "CONTROL|cmdCancel|518.25|450.75|414|414|90|26",
+      "MESSAGE|대상자 생성 완료|2026년 8월 대상자 2명을 불러왔습니다.  근무상황목록과 출장 자료를 이어서 불러오세요.",
+      "FOCUS|COMPLETE|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|AFTER_MACRO|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True"
+    ],
+    "cancel": [
+      "FOCUS|BEFORE_CLICK|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|MACRO_ENTRY|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|WB_ACTIVATE_ENTRY|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|WB_ACTIVATE_EXIT|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|NEIS_ACTIVATE|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "CONTROL|txtPersonId1|518.25|450.75|258|72|212|24",
+      "CONTROL|txtPersonId2|518.25|450.75|258|102|212|24",
+      "CONTROL|cmdConfirm|518.25|450.75|314|414|90|26",
+      "CONTROL|cmdCancel|518.25|450.75|414|414|90|26",
+      "FOCUS|COMPLETE|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|AFTER_MACRO|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True"
+    ],
+    "close_x": [
+      "FOCUS|BEFORE_CLICK|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|MACRO_ENTRY|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|WB_ACTIVATE_ENTRY|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|WB_ACTIVATE_EXIT|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|NEIS_ACTIVATE|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "CONTROL|txtPersonId1|518.25|450.75|258|72|212|24",
+      "CONTROL|txtPersonId2|518.25|450.75|258|102|212|24",
+      "CONTROL|cmdConfirm|518.25|450.75|314|414|90|26",
+      "CONTROL|cmdCancel|518.25|450.75|414|414|90|26",
+      "FOCUS|COMPLETE|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True",
+      "FOCUS|AFTER_MACRO|C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d\\focus-ui.xlsm|3279410|작업|$B$7|$B$7|1|1|100|True"
+    ]
+  },
+  "scratch_cleanup": {
+    "removed": false,
+    "retained_directory": "C:\\Users\\abl24\\AppData\\Local\\Temp\\workdays-focus-ui-fbsgtb7d"
+  },
+  "original_workbook_unchanged": true
+}

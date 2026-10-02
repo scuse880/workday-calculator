@@ -44,12 +44,16 @@ def fixture_ids(overtime: Path, work_status: Path) -> list[str]:
     book, rows = read_sheet(overtime)
     book.close()
     names = Counter()
+    roster_jobs: dict[str, set[str]] = {}
     for row in rows[4:]:
         if len(row) > 2 and row[2] is not None:
             text = str(row[2]).strip()
             match = re.fullmatch(r"([^()]+)\(([0-9]{6})\)", text)
             if match:
-                names[match.group(1).strip()] += 1
+                name = match.group(1).strip()
+                names[name] += 1
+                if len(row) > 1 and row[1]:
+                    roster_jobs.setdefault(name, set()).add(str(row[1]).strip())
     duplicates = {name: count for name, count in names.items() if count > 1}
     book, rows = read_sheet(work_status)
     book.close()
@@ -61,13 +65,17 @@ def fixture_ids(overtime: Path, work_status: Path) -> list[str]:
         if len(lines) != 2 or lines[0].strip() not in identities:
             continue
         identity = lines[1].strip().strip("()").strip().upper()
-        if re.fullmatch(r"C[0-9]{9}", identity):
+        # A same-name non-target can have more records than either target.
+        # Frequency is not evidence of target identity; use the fixture roster's
+        # job titles and reject ambiguity instead of guessing the top N IDs.
+        if (re.fullmatch(r"C[0-9]{9}", identity) and len(row) > 3
+                and str(row[3]).strip() in roster_jobs.get(lines[0].strip(), set())):
             identities[lines[0].strip()][identity] += 1
     result = []
     for name, count in duplicates.items():
-        choices = identities[name].most_common(count)
+        choices = sorted(identities[name].items())
         if len(choices) != count:
-            raise RuntimeError("Not enough distinct fixture identities for duplicate names")
+            raise RuntimeError("Fixture target identities cannot be resolved from roster job titles")
         result.extend(identity for identity, _ in choices)
     return result
 
@@ -636,7 +644,7 @@ def main() -> None:
             run("AuditConfigure", str(work_status))
             run_import_with_focus("work_status_import_preserves_focus", "LoadWorkStatusRecords")
             work_count = int(run("AuditRecordCount", "WorkStatus"))
-            check("work_status_actual_fixture", work_count == 206, records=work_count)
+            check("work_status_actual_fixture", work_count == 203, records=work_count)
             run("AuditConfigure", str(trip))
             run_import_with_focus("trip_import_preserves_focus", "LoadTripRecords")
             trip_count = int(run("AuditRecordCount", "Trip"))

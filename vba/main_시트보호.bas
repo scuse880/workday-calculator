@@ -15,11 +15,21 @@ End Sub
 
 Public Sub ApplyWorkbookProtection(Optional ByVal resetWorkDefaults As Boolean = False)
     Dim ws As Worksheet, previousEvents As Boolean
+    Dim previousWindow As Window, previousSheet As Object, previousSelection As Range
+    Dim previousScrollRow As Long, previousScrollColumn As Long, previousZoom As Variant
     Dim errorNumber As Long, errorText As String
     If mApplying Then Exit Sub
     mApplying = True
     previousEvents = Application.EnableEvents
     On Error GoTo Failed
+    Set previousWindow = Application.ActiveWindow
+    Set previousSheet = Application.ActiveSheet
+    If TypeOf Application.Selection Is Range Then Set previousSelection = Application.Selection
+    If Not previousWindow Is Nothing Then
+        previousScrollRow = previousWindow.ScrollRow
+        previousScrollColumn = previousWindow.ScrollColumn
+        previousZoom = previousWindow.Zoom
+    End If
     Application.EnableEvents = False
     ThisWorkbook.Unprotect Password:=SHEET_PASSWORD
     Set ws = ThisWorkbook.Worksheets("작업")
@@ -55,13 +65,33 @@ Public Sub ApplyWorkbookProtection(Optional ByVal resetWorkDefaults As Boolean =
             ws.Unprotect Password:=SHEET_PASSWORD
             ws.Cells.Locked = True
             ProtectUserSheet ws
-            ws.Visible = xlSheetVeryHidden
+            If ws.Visible <> xlSheetVeryHidden Then ws.Visible = xlSheetVeryHidden
         End If
     Next ws
     ThisWorkbook.Protect Password:=SHEET_PASSWORD, Structure:=True, Windows:=False
 Done:
+    ' 보이는 Excel에서 외부 파일을 닫아 재활성화될 때 보호 재적용이 다른 시트의
+    ' 화면 상태를 선택할 수 있다. 이벤트를 다시 켜기 전에 원래 화면까지 복원한다.
+    On Error Resume Next
+    If Not previousWindow Is Nothing Then previousWindow.Activate
+    If Not previousSheet Is Nothing Then
+        If previousSheet.Visible = xlSheetVisible Then
+            previousSheet.Activate
+            If Not previousSelection Is Nothing Then previousSelection.Select
+        End If
+    End If
+    If Not previousWindow Is Nothing Then
+        previousWindow.Zoom = previousZoom
+        previousWindow.ScrollRow = previousScrollRow
+        previousWindow.ScrollColumn = previousScrollColumn
+    End If
+    If Err.Number <> 0 And errorNumber = 0 Then
+        errorNumber = Err.Number
+        errorText = Err.Description
+    End If
     Application.EnableEvents = previousEvents
     mApplying = False
+    On Error GoTo 0
     If errorNumber <> 0 Then Err.Raise errorNumber, "ApplyWorkbookProtection", errorText
     Exit Sub
 Failed:

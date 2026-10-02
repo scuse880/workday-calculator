@@ -13,6 +13,7 @@ Public Order As Long
 Public Name As String
 Public Birthdate As String
 Public NeisPersonId As String
+Public JobTitle As String
 Public WorkStatusRecords As Collection
 Public TripRecords As Collection
 Public VacationWorkRecords As Collection

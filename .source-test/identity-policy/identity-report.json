@@ -1,0 +1,313 @@
+{
+  "production_dialog_adapters": [
+    "file_picker",
+    "messages",
+    "duplicate_neis_ids"
+  ],
+  "results": [
+    {
+      "test": "outside_nutritionist_four_rows_quiet",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 0
+    },
+    {
+      "test": "outside_nutritionist_four_rows_quiet_input_closed",
+      "passed": true
+    },
+    {
+      "test": "occupation_survives_trip_and_vacation_commit",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 0
+    },
+    {
+      "test": "occupation_survives_trip_and_vacation_commit_input_closed",
+      "passed": true
+    },
+    {
+      "test": "unmatched_target_role_warns",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 1
+    },
+    {
+      "test": "unmatched_target_role_warns_input_closed",
+      "passed": true
+    },
+    {
+      "test": "unmatched_unknown_role_warns",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 1
+    },
+    {
+      "test": "unmatched_unknown_role_warns_input_closed",
+      "passed": true
+    },
+    {
+      "test": "unmatched_blank_role_warns",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 1
+    },
+    {
+      "test": "unmatched_blank_role_warns_input_closed",
+      "passed": true
+    },
+    {
+      "test": "unmatched_four_rows_one_warning",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 1
+    },
+    {
+      "test": "unmatched_four_rows_one_warning_input_closed",
+      "passed": true
+    },
+    {
+      "test": "matching_both_ids",
+      "passed": true,
+      "records": 3,
+      "warning_popups": 0
+    },
+    {
+      "test": "matching_both_ids_input_closed",
+      "passed": true
+    },
+    {
+      "test": "matching_lowercase_crlf_spaces",
+      "passed": true,
+      "records": 2,
+      "warning_popups": 0
+    },
+    {
+      "test": "matching_lowercase_crlf_spaces_input_closed",
+      "passed": true
+    },
+    {
+      "test": "matching_bare_id_cr",
+      "passed": true,
+      "records": 2,
+      "warning_popups": 0
+    },
+    {
+      "test": "matching_bare_id_cr_input_closed",
+      "passed": true
+    },
+    {
+      "test": "matching_id_overrides_outside_role",
+      "passed": true,
+      "records": 2,
+      "warning_popups": 0
+    },
+    {
+      "test": "matching_id_overrides_outside_role_input_closed",
+      "passed": true
+    },
+    {
+      "test": "same_outside_role_in_roster_is_uncertain",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 1
+    },
+    {
+      "test": "same_outside_role_in_roster_is_uncertain_input_closed",
+      "passed": true
+    },
+    {
+      "test": "missing_roster_role_is_uncertain",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 1
+    },
+    {
+      "test": "missing_roster_role_is_uncertain_input_closed",
+      "passed": true
+    },
+    {
+      "test": "unknown_person_bad_identity_quiet",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 0
+    },
+    {
+      "test": "unknown_person_bad_identity_quiet_input_closed",
+      "passed": true
+    },
+    {
+      "test": "single_target_missing_id_unchanged",
+      "passed": true,
+      "records": 2,
+      "warning_popups": 0
+    },
+    {
+      "test": "single_target_missing_id_unchanged_input_closed",
+      "passed": true
+    },
+    {
+      "test": "single_target_malformed_id_unchanged",
+      "passed": true,
+      "records": 2,
+      "warning_popups": 0
+    },
+    {
+      "test": "single_target_malformed_id_unchanged_input_closed",
+      "passed": true
+    },
+    {
+      "test": "single_target_other_id_unchanged",
+      "passed": true,
+      "records": 2,
+      "warning_popups": 0
+    },
+    {
+      "test": "single_target_other_id_unchanged_input_closed",
+      "passed": true
+    },
+    {
+      "test": "missing_source_id_aborts",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "missing_source_id_aborts_input_closed",
+      "passed": true
+    },
+    {
+      "test": "malformed_source_id_aborts",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "malformed_source_id_aborts_input_closed",
+      "passed": true
+    },
+    {
+      "test": "extra_identity_line_aborts",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "extra_identity_line_aborts_input_closed",
+      "passed": true
+    },
+    {
+      "test": "missing_id_outside_role_still_uncertain",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "missing_id_outside_role_still_uncertain_input_closed",
+      "passed": true
+    },
+    {
+      "test": "malformed_id_outside_role_still_uncertain",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "malformed_id_outside_role_still_uncertain_input_closed",
+      "passed": true
+    },
+    {
+      "test": "duplicate_registry_id_aborts",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "duplicate_registry_id_aborts_input_closed",
+      "passed": true
+    },
+    {
+      "test": "missing_registry_id_aborts",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "missing_registry_id_aborts_input_closed",
+      "passed": true
+    },
+    {
+      "test": "malformed_registry_id_aborts",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "malformed_registry_id_aborts_input_closed",
+      "passed": true
+    },
+    {
+      "test": "abort_preserves_false_loaded_flag",
+      "passed": true,
+      "preserved_records_flags_results": true
+    },
+    {
+      "test": "abort_preserves_false_loaded_flag_input_closed",
+      "passed": true
+    },
+    {
+      "test": "noncompleted_bad_id_bypasses_identity",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 0
+    },
+    {
+      "test": "noncompleted_bad_id_bypasses_identity_input_closed",
+      "passed": true
+    },
+    {
+      "test": "parenting_bad_id_bypasses_identity",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 0
+    },
+    {
+      "test": "parenting_bad_id_bypasses_identity_input_closed",
+      "passed": true
+    },
+    {
+      "test": "maternity_bad_id_bypasses_identity",
+      "passed": true,
+      "records": 1,
+      "warning_popups": 0
+    },
+    {
+      "test": "maternity_bad_id_bypasses_identity_input_closed",
+      "passed": true
+    },
+    {
+      "test": "real_roster_unchanged",
+      "passed": true,
+      "employees": 77
+    },
+    {
+      "test": "real_outside_rows_quiet_target_records_unchanged",
+      "passed": true,
+      "records": 203,
+      "expected_target_records": 203,
+      "outside_records": 4
+    },
+    {
+      "test": "real_source_closed",
+      "passed": true
+    },
+    {
+      "test": "baseline_work_status_module_compiles",
+      "passed": true
+    },
+    {
+      "test": "same_correct_ids_preserve_all_real_target_records",
+      "passed": true,
+      "records": 203
+    },
+    {
+      "test": "baseline_only_difference_is_outside_warning",
+      "passed": true,
+      "baseline_warning_popups": 1
+    }
+  ],
+  "full_compile_passed": true,
+  "passed": true,
+  "original_hashes_unchanged": true
+}

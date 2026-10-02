@@ -34,6 +34,10 @@ Public Sub LoadOvertimeEmployees()
         employee.Order = count
         employee.Name = employeeName
         employee.Birthdate = birthdate
+        ' 직급은 비대상 동명이인 판별의 보조 정보이며 대상자 생성 조건은 바꾸지 않는다.
+        If Not IsError(sourceSheet.Cells(r, 2).Value2) Then
+            employee.JobTitle = CellText(sourceSheet.Cells(r, 2))
+        End If
         If Not staged.Exists(employeeName) Then
             Set group = New Collection
             staged.Add employeeName, group
@@ -233,25 +237,26 @@ Public Function SelectInputWorkbook(ByRef openedByCode As Boolean) As Workbook
     Dim previousWindow As Window, previousSheet As Object
     Dim savedNumber As Long, savedDescription As String
     openedByCode = False
-    selected = Application.GetOpenFilename("Excel 통합 문서 (*.xlsx),*.xlsx", , "입력할 xlsx 파일 선택")
-    If VarType(selected) = vbBoolean Then Exit Function
-    If LCase$(Right$(CStr(selected), 5)) <> ".xlsx" Then RaiseValidation "입력 파일", "xlsx 파일을 선택하세요."
-    For Each wb In Application.Workbooks
-        If StrComp(wb.FullName, CStr(selected), vbTextCompare) = 0 Then
-            Set SelectInputWorkbook = wb
-            Exit Function
-        End If
-    Next wb
     Set previousWindow = Application.ActiveWindow
     Set previousSheet = Application.ActiveSheet
     oldSecurity = Application.AutomationSecurity
     oldEvents = Application.EnableEvents
     On Error GoTo Failed
+    selected = Application.GetOpenFilename("Excel 통합 문서 (*.xlsx),*.xlsx", , "입력할 xlsx 파일 선택")
+    If VarType(selected) = vbBoolean Then GoTo RestoreCaller
+    If LCase$(Right$(CStr(selected), 5)) <> ".xlsx" Then RaiseValidation "입력 파일", "xlsx 파일을 선택하세요."
+    For Each wb In Application.Workbooks
+        If StrComp(wb.FullName, CStr(selected), vbTextCompare) = 0 Then
+            GoTo RestoreCaller
+        End If
+    Next wb
     Application.AutomationSecurity = 3
     Application.EnableEvents = False
     Set wb = Application.Workbooks.Open(Filename:=CStr(selected), UpdateLinks:=0, ReadOnly:=True, AddToMru:=False, IgnoreReadOnlyRecommended:=True)
     openedByCode = True
+RestoreCaller:
     ' 입력 파일은 뒤에서 읽는다. 열기/닫기가 호출한 창과 시트의 포커스를 바꾸지 않게 한다.
+    Application.EnableEvents = False
     If Not previousWindow Is Nothing Then previousWindow.Activate
     If Not previousSheet Is Nothing Then previousSheet.Activate
     Application.AutomationSecurity = oldSecurity
@@ -272,11 +277,19 @@ Failed:
 End Function
 
 Public Sub CloseInputWorkbook(ByVal wb As Workbook, ByVal openedByCode As Boolean)
+    Dim previousWindow As Window, previousSheet As Object, previousEvents As Boolean
     If wb Is Nothing Then Exit Sub
     If Not openedByCode Then Exit Sub
     ' 원래 오류를 가리지 않고, 읽기 전용 원본은 저장하지 않는다.
     On Error Resume Next
+    Set previousWindow = Application.ActiveWindow
+    Set previousSheet = Application.ActiveSheet
+    previousEvents = Application.EnableEvents
     wb.Close SaveChanges:=False
+    Application.EnableEvents = False
+    If Not previousWindow Is Nothing Then previousWindow.Activate
+    If Not previousSheet Is Nothing Then previousSheet.Activate
+    Application.EnableEvents = previousEvents
     On Error GoTo 0
 End Sub
 
@@ -444,6 +457,7 @@ Public Sub CommitRecordStage(ByVal staged As Object, ByVal recordKind As String)
         employee.Name = oldEmployee.Name
         employee.Birthdate = oldEmployee.Birthdate
         employee.NeisPersonId = oldEmployee.NeisPersonId
+        employee.JobTitle = oldEmployee.JobTitle
         employee.PersonnelChangeStart = oldEmployee.PersonnelChangeStart
         employee.PersonnelChangeEnd = oldEmployee.PersonnelChangeEnd
         Set employee.WorkStatusRecords = oldEmployee.WorkStatusRecords

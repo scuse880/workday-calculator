@@ -13,6 +13,7 @@ from ctypes import wintypes
 import json
 import importlib.util
 from pathlib import Path
+import re
 import shutil
 import tempfile
 import time
@@ -91,21 +92,22 @@ def control_point(dialog, hwnd, control, x_offset=None, y_offset=None):
 
 
 def check_form_layout(dialog, check):
-    # Freeze the existing layout: only the form's lower edge may grow for the fix.
+    # Freeze the calendar and vertical layout while allowing only the requested
+    # widths, label reflow and horizontal action-button shift.
     expected = {
-        "lblTitle": (17, 10, 720, 24),
+        "lblTitle": (17, 10, 500, 24),
         "lblEmployee": (17, 41, 72, 18),
-        "cmbEmployee": (96, 39, 420, 22),
-        "lblNotice": (17, 69, 720, 19),
-        "lblInstructions": (17, 90, 720, 32),
+        "cmbEmployee": (96, 39, 84, 22),
+        "lblNotice": (17, 69, 500, 19),
+        "lblInstructions": (17, 90, 500, 32),
         "lblMonth": (19, 130, 264, 19),
-        "lblRegistered": (307, 130, 420, 20),
-        "lstRegistered": (307, 154, 420, dialog.AuditRegisteredBaselineHeight()),
-        "lblSelection": (307, 287, 420, 18),
-        "lblStatus": (307, 307, 420, 35),
-        "cmdSave": (445, 350, 90, 29),
-        "cmdClear": (541, 350, 90, 29),
-        "cmdClose": (637, 350, 90, 29),
+        "lblRegistered": (307, 130, 210, 20),
+        "lstRegistered": (307, 154, 210, dialog.AuditRegisteredBaselineHeight()),
+        "lblSelection": (307, 287, 210, 18),
+        "lblStatus": (307, 307, 210, 35),
+        "cmdSave": (235, 350, 90, 29),
+        "cmdClear": (331, 350, 90, 29),
+        "cmdClose": (427, 350, 90, 29),
     }
     for column in range(7):
         expected[f"lblWeek{column}"] = (19 + column * 38, 151, 36, 17)
@@ -124,7 +126,7 @@ def check_form_layout(dialog, check):
         if (left < 0 or top < 0 or left + width > dialog.InsideWidth + 0.1
                 or top + height > dialog.InsideHeight + 0.1):
             clipped.append(control.Name)
-    check("form_width_preserved", dialog.Width, 760)
+    check("form_width_compacted", dialog.Width, 550)
     # MSForms can quantize geometry when controls are first displayed.
     geometry_tolerance = 0.5
     mismatches = {
@@ -134,7 +136,7 @@ def check_form_layout(dialog, check):
             or any(abs(observed - baseline) > geometry_tolerance
                    for observed, baseline in zip(actual[name], expected[name])))
     }
-    check("control_layout_preserved", not mismatches, True, mismatches=mismatches,
+    check("requested_widths_and_remaining_layout", not mismatches, True, mismatches=mismatches,
           controls_checked=len(expected), registered_baseline_height=expected["lstRegistered"][3],
           tolerance_points=geometry_tolerance)
     check("controls_inside_client_area", clipped, [],
@@ -145,6 +147,16 @@ def check_form_layout(dialog, check):
     )
     check("action_button_bottom_margin", bottom_margin >= 11.9, True,
           margin_points=bottom_margin)
+    check("notice_content_preserved", dialog.Controls("lblNotice").Caption,
+          "등록한 기간의 날짜는 해당 교직원의 근무일수 계산에서 제외됩니다.")
+    check("instructions_content_and_line_break", dialog.Controls("lblInstructions").Caption,
+          "시작일과 종료일을 차례로 클릭하세요. 종료일은 시작일보다 늦어야 합니다.\r\n"
+          "교직원 변경·닫기 시 저장하지 않은 선택은 취소됩니다.")
+    check("instructions_wrap", dialog.Controls("lblInstructions").WordWrap, True)
+    for name in ("lblNotice", "lblInstructions", "lblStatus"):
+        required_height = dialog.AuditCaptionHeight(name)
+        check(name + "_text_fits", required_height <= dialog.Controls(name).Height, True,
+              required_height=required_height, available_height=dialog.Controls(name).Height)
 
 
 def focus_form(hwnd):
@@ -161,9 +173,9 @@ def focus_form(hwnd):
         user32.AttachThreadInput(current_thread, foreground_thread, False)
 
 
-def wheel_at(dialog, hwnd, control, delta=-120, y_offset=None):
+def wheel_at(dialog, hwnd, control, delta=-120, y_offset=None, x_offset=None):
     focus_form(hwnd)
-    x, y = control_point(dialog, hwnd, control, y_offset=y_offset)
+    x, y = control_point(dialog, hwnd, control, x_offset=x_offset, y_offset=y_offset)
     user32.SetCursorPos(x, y)
     pump()
     event = Input(0, InputUnion(mouse=MouseInput(0, 0, delta & 0xFFFFFFFF, 0x800, 0, 0)))
@@ -227,6 +239,35 @@ End Function
 '''
 
 FORM_AUDIT = '''
+Public Function AuditCaptionHeight(ByVal controlName As String) As Single
+    Dim original As MSForms.Label, measured As MSForms.Label
+    Set original = Me.Controls(controlName)
+    Set measured = Me.Controls.Add("Forms.Label.1", "auditCaption", False)
+    With measured
+        .Font.Name = original.Font.Name
+        .Font.Size = original.Font.Size
+        .Font.Bold = original.Font.Bold
+        .Width = original.Width
+        .WordWrap = True
+        .Caption = original.Caption
+        .AutoSize = True
+        AuditCaptionHeight = .Height
+    End With
+    Me.Controls.Remove "auditCaption"
+End Function
+Public Function AuditTextWidth(ByVal textValue As String) As Single
+    Dim measured As MSForms.Label
+    Set measured = Me.Controls.Add("Forms.Label.1", "auditTextWidth", False)
+    With measured
+        .Font.Name = "맑은 고딕"
+        .Font.Size = 9
+        .WordWrap = False
+        .Caption = textValue
+        .AutoSize = True
+        AuditTextWidth = .Width
+    End With
+    Me.Controls.Remove "auditTextWidth"
+End Function
 Public Function AuditRegisteredBaselineHeight() As Single
     Dim baseline As MSForms.ListBox
     ' Original creation order: IntegralHeight is True when Height is assigned.
@@ -358,6 +399,19 @@ def main():
         check_form_layout(dialog, check)
         check("month_title", dialog.Controls("lblTitle").Caption, "2026년 8월")
         check("dropdown_rows", employee.ListRows, 25)
+        popup_width = float(re.search(r"[\d.]+", str(employee.ListWidth)).group())
+        check("dropdown_popup_width", popup_width, 210)
+        check("registered_two_columns", registered.ColumnCount, 2)
+        column_widths = [float(re.search(r"[\d.]+", width).group())
+                         for width in registered.ColumnWidths.split(";")]
+        check("registered_column_widths", column_widths, [78, 116])
+        for label, sample, available_width in (
+            ("duplicate_identity", "김나나(830104)", column_widths[0]),
+            ("full_period", "2026-08-06~2026-08-08", column_widths[1]),
+        ):
+            required_width = dialog.AuditTextWidth(sample)
+            check(label + "_text_fits_column", required_width <= available_width - 2, True,
+                  required_width=required_width, available_width=available_width)
         check("initial_employees", employee.ListCount, 77)
         check("initial_registered", registered.ListCount, 73)
         if args.layout_only:
@@ -371,11 +425,16 @@ def main():
         employee.ListIndex = 3
         pump()
         check("duplicate_index_identity", dialog.AuditSelectedIndex(), 4)
+        check("selected_identity_tooltip", employee.ControlTipText, "김나나(830104)")
         dialog.AuditSelectDay(6)
         dialog.AuditSelectDay(8)
         dialog.AuditSave()
         check("saved_registered_count", registered.ListCount, 74)
         check("saved_period", registered.List[0][1], "2026-08-06~2026-08-08")
+        check("selected_period_content", dialog.Controls("lblStatus").Caption,
+              "2026-08-06 ~ 2026-08-08\r\n3일 · 저장됨")
+        check("selected_period_text_fits", dialog.AuditCaptionHeight("lblStatus") <=
+              dialog.Controls("lblStatus").Height, True)
         dialog.AuditClear()
         check("clear_registered_count", registered.ListCount, 73)
         employee.SetFocus()
@@ -395,12 +454,20 @@ def main():
         employee.Value = ""
         pump()
         check("restore_all_filter", employee.ListCount, 77)
+        # Filtering can leave the restored list scrolled to its last page.
+        # Start at row zero so a downward wheel event has room to move.
+        employee.TopIndex = 0
+        pump()
         old_top = employee.TopIndex
-        wheel_at(dialog, hwnd, employee, y_offset=54)
-        check("dropdown_actual_wheel_down", employee.TopIndex > old_top, True)
+        wheel_at(dialog, hwnd, employee, y_offset=54, x_offset=employee.Width + 24)
+        check("dropdown_actual_wheel_down", employee.TopIndex > old_top, True,
+              old_top=old_top, new_top=employee.TopIndex,
+              hook_installed=run("PersonnelMouseWheel.AuditWheelInstalled"))
         old_top = employee.TopIndex
-        wheel_at(dialog, hwnd, employee, 120, y_offset=54)
-        check("dropdown_actual_wheel_up", employee.TopIndex < old_top, True)
+        wheel_at(dialog, hwnd, employee, 120, y_offset=54, x_offset=employee.Width + 24)
+        check("dropdown_actual_wheel_up", employee.TopIndex < old_top, True,
+              old_top=old_top, new_top=employee.TopIndex,
+              hook_installed=run("PersonnelMouseWheel.AuditWheelInstalled"))
         registered.SetFocus()
         pump()
         old_top = registered.TopIndex

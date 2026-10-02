@@ -1,0 +1,116 @@
+[
+  {
+    "name": "full_compile",
+    "actual": false,
+    "expected": false,
+    "passed": true
+  },
+  {
+    "name": "setup",
+    "actual": "ok",
+    "expected": "ok",
+    "passed": true
+  },
+  {
+    "name": "form_caption",
+    "actual": "인사변동자 등록",
+    "expected": "인사변동자 등록",
+    "passed": true
+  },
+  {
+    "name": "form_width_compacted",
+    "actual": 550.0,
+    "expected": 550,
+    "passed": true
+  },
+  {
+    "name": "requested_widths_and_remaining_layout",
+    "actual": true,
+    "expected": true,
+    "passed": true,
+    "mismatches": {},
+    "controls_checked": 51,
+    "registered_baseline_height": 115.55000305175781,
+    "tolerance_points": 0.5
+  },
+  {
+    "name": "controls_inside_client_area",
+    "actual": [],
+    "expected": [],
+    "passed": true,
+    "inside_width": 537.75,
+    "inside_height": 392.25
+  },
+  {
+    "name": "action_button_bottom_margin",
+    "actual": true,
+    "expected": true,
+    "passed": true,
+    "margin_points": 13.25
+  },
+  {
+    "name": "notice_content_preserved",
+    "actual": "등록한 기간의 날짜는 해당 교직원의 근무일수 계산에서 제외됩니다.",
+    "expected": "등록한 기간의 날짜는 해당 교직원의 근무일수 계산에서 제외됩니다.",
+    "passed": true
+  },
+  {
+    "name": "instructions_content_and_line_break",
+    "actual": "시작일과 종료일을 차례로 클릭하세요. 종료일은 시작일보다 늦어야 합니다.\r\n교직원 변경·닫기 시 저장하지 않은 선택은 취소됩니다.",
+    "expected": "시작일과 종료일을 차례로 클릭하세요. 종료일은 시작일보다 늦어야 합니다.\r\n교직원 변경·닫기 시 저장하지 않은 선택은 취소됩니다.",
+    "passed": true
+  },
+  {
+    "name": "instructions_wrap",
+    "actual": true,
+    "expected": true,
+    "passed": true
+  },
+  {
+    "name": "lblNotice_text_fits",
+    "actual": true,
+    "expected": true,
+    "passed": true,
+    "required_height": 11.25,
+    "available_height": 19.0
+  },
+  {
+    "name": "lblInstructions_text_fits",
+    "actual": true,
+    "expected": true,
+    "passed": true,
+    "required_height": 22.5,
+    "available_height": 32.0
+  },
+  {
+    "name": "lblStatus_text_fits",
+    "actual": true,
+    "expected": true,
+    "passed": true,
+    "required_height": 22.5,
+    "available_height": 35.0
+  },
+  {
+    "name": "month_title",
+    "actual": "2026년 8월",
+    "expected": "2026년 8월",
+    "passed": true
+  },
+  {
+    "name": "dropdown_rows",
+    "actual": 25,
+    "expected": 25,
+    "passed": true
+  },
+  {
+    "name": "dropdown_popup_width",
+    "actual": "210 pt",
+    "expected": 210,
+    "passed": false
+  },
+  {
+    "name": "execution_error",
+    "error": "dropdown_popup_width",
+    "passed": false
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "changed_components": [
+    "CEmployee",
+    "main_근무상황목록",
+    "main_초과근무월별집계"
+  ],
+  "expected_components_only": true,
+  "source_matches": {
+    "main_초과근무월별집계": true,
+    "main_근무상황목록": true,
+    "CEmployee": true
+  },
+  "sheet_names_order_visibility_preserved": true,
+  "all_sheet_shapes_preserved": true,
+  "reopen_protection_active": true,
+  "passed": true
+}

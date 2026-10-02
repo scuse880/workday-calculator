@@ -99,7 +99,7 @@
     {
       "test": "work_status_actual_fixture",
       "passed": true,
-      "records": 203
+      "records": 206
     },
     {
       "test": "trip_import_preserves_focus",
@@ -393,7 +393,7 @@
     {
       "test": "calculation_without_holiday_setup",
       "passed": true,
-      "total_days": 960
+      "total_days": 966
     },
     {
       "test": "personnel_period_excluded",

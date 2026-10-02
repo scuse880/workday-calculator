@@ -5,7 +5,7 @@ Public Sub LoadWorkStatusRecords()
     Dim workMonth As Date, startMinute As Long, endMinute As Long
     Dim sourceBook As Workbook, sourceSheet As Worksheet, openedByCode As Boolean
     Dim staged As Object, warnings As Object, group As Collection, records As Collection
-    Dim employee As CEmployee, candidate As Variant, record As CWorkStatusRecord
+    Dim employee As CEmployee, record As CWorkStatusRecord
     Dim r As Long, count As Long, rawName As String, name As String, rawId As String
     Dim normalizedId As String, validId As Boolean, reason As String, warning As Variant
     Dim startAt As Date, endAt As Date, failure As String
@@ -32,16 +32,11 @@ Public Sub LoadWorkStatusRecords()
                 If group.count = 1 Then
                     Set employee = group(1)
                 Else
-                    If validId Then
-                        For Each candidate In group
-                            If candidate.NeisPersonId = normalizedId Then
-                                Set employee = candidate
-                                Exit For
-                            End If
-                        Next candidate
-                    End If
+                    Set employee = ResolveWorkStatusDuplicate(group, validId, normalizedId, sourceSheet.Cells(r, 3))
                     If employee Is Nothing Then
-                        AddIdentityWarning warnings, sourceSheet, r, name, rawId, validId, normalizedId, group
+                        If Not IsConfirmedNonTargetOccupation(CellText(sourceSheet.Cells(r, 4)), group) Then
+                            AddIdentityWarning warnings, sourceSheet, r, name, rawId, validId, normalizedId, group
+                        End If
                     End If
                 End If
                 If Not employee Is Nothing Then
@@ -79,6 +74,40 @@ Public Function IsCompletedWorkStatus(ByVal value As Variant) As Boolean
     If IsError(value) Or IsNull(value) Or IsEmpty(value) Then Exit Function
     If VarType(value) <> vbString Then Exit Function
     IsCompletedWorkStatus = (StrComp(CStr(value), "완결", vbBinaryCompare) = 0)
+End Function
+
+Private Function ResolveWorkStatusDuplicate(ByVal candidates As Collection, ByVal validId As Boolean, _
+                                           ByVal normalizedId As String, ByVal sourceCell As Range) As CEmployee
+    Dim candidate As CEmployee, matched As CEmployee, registeredIds As Object
+    Dim registeredId As String
+    If Not validId Then
+        RaiseValidation CellContext(sourceCell), _
+                        "동명이인 중 어느 작업 대상자의 기록인지 구분할 수 없습니다. 나이스 개인번호를 확인한 뒤 다시 불러오세요."
+    End If
+    Set registeredIds = NewDictionary()
+    For Each candidate In candidates
+        If Not TryNormalizeNeisId(candidate.NeisPersonId, registeredId) Then
+            RaiseValidation CellContext(sourceCell), "동명이인의 등록된 나이스 개인번호를 확인하고 대상자를 다시 생성하세요."
+        End If
+        If registeredIds.Exists(registeredId) Then
+            RaiseValidation CellContext(sourceCell), "동명이인의 등록된 나이스 개인번호가 중복되어 구분할 수 없습니다. 대상자를 다시 생성하세요."
+        End If
+        registeredIds.Add registeredId, True
+        If registeredId = normalizedId Then Set matched = candidate
+    Next candidate
+    Set ResolveWorkStatusDuplicate = matched
+End Function
+
+Private Function IsConfirmedNonTargetOccupation(ByVal sourceJobTitle As String, ByVal candidates As Collection) As Boolean
+    Dim candidate As CEmployee
+    ' 번호가 유효하지만 대상자 전원과 다를 때만 호출한다. 미일치 번호만으로
+    ' 비대상으로 단정하지 않으며 확인된 비대상 직종에 한해서만 경고를 생략한다.
+    If sourceJobTitle <> "영양사" Then Exit Function
+    For Each candidate In candidates
+        If Len(candidate.JobTitle) = 0 Then Exit Function
+        If candidate.JobTitle = sourceJobTitle Then Exit Function
+    Next candidate
+    IsConfirmedNonTargetOccupation = True
 End Function
 
 Private Sub ReadWorkStatusIdentity(ByVal raw As String, ByRef name As String, ByRef rawId As String, ByRef validId As Boolean, ByRef normalizedId As String)

@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.UserForm frmPersonnelChange
    Caption = "인사변동자 등록"
    ClientHeight = 5700
-   ClientWidth = 11400
+   ClientWidth = 8250
    StartUpPosition = 1
 End
 Attribute VB_Name = "frmPersonnelChange"
@@ -48,10 +48,10 @@ Public Sub Configure(ByVal workMonth As Date, ByVal employees As Collection)
     mLoading = True
     mWorkMonth = workMonth
     Set mEmployees = employees
-    Me.Width = 760
+    Me.Width = 550
     Me.Height = 405
 
-    Set title = AddLabel("lblTitle", Format$(workMonth, "yyyy년 m월"), 17, 10, 720, 24)
+    Set title = AddLabel("lblTitle", Format$(workMonth, "yyyy년 m월"), 17, 10, 500, 24)
     title.Font.Size = 13
     title.Font.Bold = True
     AddLabel "lblEmployee", "교직원", 17, 41, 72, 18
@@ -59,20 +59,25 @@ Public Sub Configure(ByVal workMonth As Date, ByVal employees As Collection)
     With mEmployeeList
         .Left = 96
         .Top = 39
-        .Width = 420
+        .Width = 84
         .Height = 22
         .Style = fmStyleDropDownCombo
         .MatchEntry = fmMatchEntryNone
         .ListRows = 25
+        ' 입력칸은 1/5 폭으로 줄이되 펼친 목록에서는 동명이인의 생년월일까지 표시한다.
+        .ListWidth = 210
         .Font.name = "맑은 고딕"
         .Font.Size = 9
     End With
     PopulateEmployeeList vbNullString
 
-    Set title = AddLabel("lblNotice", "등록한 기간의 날짜는 해당 교직원의 근무일수 계산에서 제외됩니다.", 17, 69, 720, 19)
+    Set title = AddLabel("lblNotice", "등록한 기간의 날짜는 해당 교직원의 근무일수 계산에서 제외됩니다.", 17, 69, 500, 19)
     title.Font.Bold = True
     title.ForeColor = RGB(115, 45, 35)
-    AddLabel "lblInstructions", "시작일과 종료일을 차례로 클릭하세요. 종료일은 시작일보다 늦어야 합니다. 교직원 변경·닫기 시 저장하지 않은 선택은 취소됩니다.", 17, 90, 720, 32
+    Set title = AddLabel("lblInstructions", _
+                        "시작일과 종료일을 차례로 클릭하세요. 종료일은 시작일보다 늦어야 합니다." & vbCrLf & _
+                        "교직원 변경·닫기 시 저장하지 않은 선택은 취소됩니다.", 17, 90, 500, 32)
+    title.WordWrap = True
     AddLabel "lblMonth", Format$(workMonth, "yyyy년 m월"), 19, 130, 264, 19
     For columnIndex = 0 To 6
         Set title = AddLabel("lblWeek" & columnIndex, Mid$("일월화수목금토", columnIndex + 1, 1), _
@@ -105,29 +110,29 @@ Public Sub Configure(ByVal workMonth As Date, ByVal employees As Collection)
         DayButtonHandlers.Add handler
     Next d
 
-    AddLabel "lblRegistered", "등록된 교직원 및 기간", 307, 130, 420, 20
+    AddLabel "lblRegistered", "등록된 교직원 및 기간", 307, 130, 210, 20
     Set mRegisteredList = Me.Controls.Add("Forms.ListBox.1", "lstRegistered", True)
     With mRegisteredList
         .Left = 307
         .Top = 154
-        .Width = 420
+        .Width = 210
         .Height = 125
         .ColumnCount = 2
-        .ColumnWidths = "165 pt;235 pt"
+        .ColumnWidths = "78 pt;116 pt"
         .Font.name = "맑은 고딕"
         .Font.Size = 9
         .IntegralHeight = False
     End With
     RefreshRegisteredEmployees
-    AddLabel "lblSelection", "선택한 기간", 307, 287, 420, 18
-    Set mStatus = AddLabel("lblStatus", vbNullString, 307, 307, 420, 35)
+    AddLabel "lblSelection", "선택한 기간", 307, 287, 210, 18
+    Set mStatus = AddLabel("lblStatus", vbNullString, 307, 307, 210, 35)
     mStatus.BackStyle = fmBackStyleOpaque
     mStatus.BackColor = RGB(255, 255, 255)
     mStatus.BorderStyle = fmBorderStyleSingle
     mStatus.WordWrap = True
-    Set mSaveButton = AddActionButton("cmdSave", "저장", 445, 350)
-    Set mClearButton = AddActionButton("cmdClear", "등록 해제", 541, 350)
-    Set mCloseButton = AddActionButton("cmdClose", "닫기", 637, 350)
+    Set mSaveButton = AddActionButton("cmdSave", "저장", 235, 350)
+    Set mClearButton = AddActionButton("cmdClear", "등록 해제", 331, 350)
+    Set mCloseButton = AddActionButton("cmdClose", "닫기", 427, 350)
     ' Height에는 제목 표시줄과 테두리가 포함되므로 실제 내부 높이로 하단 여백을 확보한다.
     If Me.InsideHeight < mCloseButton.Top + mCloseButton.Height + 12 Then
         ' 화면에 표시할 때 픽셀 단위로 반올림되는 높이를 고려해 1pt를 더 확보한다.
@@ -310,8 +315,10 @@ Private Sub LoadEmployeeSelection()
     mSavedStartDay = 0
     mSavedEndDay = 0
     If Not mEmployeeList Is Nothing Then
+        mEmployeeList.ControlTipText = vbNullString
         If mSelectedEmployeeIndex > 0 Then
             Set employee = mEmployees(mSelectedEmployeeIndex)
+            mEmployeeList.ControlTipText = EmployeeDisplayName(employee)
             mStartDay = employee.PersonnelChangeStart
             mEndDay = employee.PersonnelChangeEnd
             mSavedStartDay = mStartDay
@@ -444,13 +451,16 @@ End Sub
 Public Function HandlePersonnelWheel(ByVal x As Single, ByVal y As Single, ByVal delta As Long, _
                                      ByVal overPopup As Boolean) As Boolean
     Dim rowStep As Long, nextIndex As Long, topIndex As Long, popupRows As Long
+    Dim employeeAreaWidth As Single
     If mLoading Or delta = 0 Or mEmployeeList Is Nothing Or mRegisteredList Is Nothing Then Exit Function
     rowStep = -(delta \ 120) * 3
     If rowStep = 0 Then rowStep = -Sgn(delta)
     topIndex = mEmployeeList.topIndex
     popupRows = mEmployeeList.ListCount
     If popupRows > mEmployeeList.ListRows Then popupRows = mEmployeeList.ListRows
-    If x >= mEmployeeList.Left And x < mEmployeeList.Left + mEmployeeList.Width Then
+    employeeAreaWidth = mEmployeeList.Width
+    If overPopup Then employeeAreaWidth = CSng(Val(mEmployeeList.ListWidth))
+    If x >= mEmployeeList.Left And x < mEmployeeList.Left + employeeAreaWidth Then
         If (y >= mEmployeeList.Top And y < mEmployeeList.Top + mEmployeeList.Height) _
            Or (topIndex >= 0 And overPopup And popupRows > 0) Then
             If mEmployeeList.ListCount > 0 Then
