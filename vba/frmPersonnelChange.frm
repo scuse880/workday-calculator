@@ -128,6 +128,11 @@ Public Sub Configure(ByVal workMonth As Date, ByVal employees As Collection)
     Set mSaveButton = AddActionButton("cmdSave", "저장", 445, 350)
     Set mClearButton = AddActionButton("cmdClear", "등록 해제", 541, 350)
     Set mCloseButton = AddActionButton("cmdClose", "닫기", 637, 350)
+    ' Height에는 제목 표시줄과 테두리가 포함되므로 실제 내부 높이로 하단 여백을 확보한다.
+    If Me.InsideHeight < mCloseButton.Top + mCloseButton.Height + 12 Then
+        ' 화면에 표시할 때 픽셀 단위로 반올림되는 높이를 고려해 1pt를 더 확보한다.
+        Me.Height = Me.Height + mCloseButton.Top + mCloseButton.Height + 13 - Me.InsideHeight
+    End If
 
     If mEmployeeList.ListCount > 0 Then mEmployeeList.ListIndex = 0
     If mEmployeeList.ListIndex >= 0 Then mSelectedEmployeeIndex = CLng(mDisplayedEmployees(1))

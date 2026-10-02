@@ -230,6 +230,7 @@ End Sub
 
 Public Function SelectInputWorkbook(ByRef openedByCode As Boolean) As Workbook
     Dim selected As Variant, wb As Workbook, oldSecurity As Long, oldEvents As Boolean
+    Dim previousWindow As Window, previousSheet As Object
     Dim savedNumber As Long, savedDescription As String
     openedByCode = False
     selected = Application.GetOpenFilename("Excel 통합 문서 (*.xlsx),*.xlsx", , "입력할 xlsx 파일 선택")
@@ -241,6 +242,8 @@ Public Function SelectInputWorkbook(ByRef openedByCode As Boolean) As Workbook
             Exit Function
         End If
     Next wb
+    Set previousWindow = Application.ActiveWindow
+    Set previousSheet = Application.ActiveSheet
     oldSecurity = Application.AutomationSecurity
     oldEvents = Application.EnableEvents
     On Error GoTo Failed
@@ -248,6 +251,9 @@ Public Function SelectInputWorkbook(ByRef openedByCode As Boolean) As Workbook
     Application.EnableEvents = False
     Set wb = Application.Workbooks.Open(Filename:=CStr(selected), UpdateLinks:=0, ReadOnly:=True, AddToMru:=False, IgnoreReadOnlyRecommended:=True)
     openedByCode = True
+    ' 입력 파일은 뒤에서 읽는다. 열기/닫기가 호출한 창과 시트의 포커스를 바꾸지 않게 한다.
+    If Not previousWindow Is Nothing Then previousWindow.Activate
+    If Not previousSheet Is Nothing Then previousSheet.Activate
     Application.AutomationSecurity = oldSecurity
     Application.EnableEvents = oldEvents
     Set SelectInputWorkbook = wb
@@ -256,6 +262,9 @@ Failed:
     savedNumber = Err.Number
     savedDescription = Err.Description
     On Error Resume Next
+    If openedByCode Then wb.Close SaveChanges:=False
+    If Not previousWindow Is Nothing Then previousWindow.Activate
+    If Not previousSheet Is Nothing Then previousSheet.Activate
     Application.AutomationSecurity = oldSecurity
     Application.EnableEvents = oldEvents
     On Error GoTo 0

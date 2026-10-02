@@ -102,8 +102,9 @@ End Function
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report", type=Path)
+    parser.add_argument("--workbook", type=Path, default=ROOT / "workbook" / "근무일수계산.xlsm")
     args = parser.parse_args()
-    original = ROOT / "workbook" / "근무일수계산.xlsm"
+    original = args.workbook
     before = hashlib.sha256(original.read_bytes()).hexdigest()
     report = {"results": []}
     excel = book = None
@@ -139,6 +140,26 @@ def main():
             settings_before = [list(settings.Range(settings.Cells(2, c), settings.Cells(settings.Rows.Count, c).End(-4162)).Value2)
                                for c in range(1, 5)]
             work = book.Worksheets("작업")
+            steps = (("btnHolidays", 9, "공휴일"), ("btnEmployees", 11, "초과근무"),
+                     ("btnPersonnel", 13, "인사변동자"), ("btnWorkStatus", 15, "근무상황관리"),
+                     ("btnTrips", 17, "출장관리"), ("btnVacation", 19, "방학중근무"),
+                     ("btnCalculate", 21, "작업결과"))
+
+            def check_step_layout(label):
+                check(label, all(abs(work.Shapes(name).Top - work.Cells(row, 1).Top) < 0.1
+                      and abs(work.Shapes(name).Height - 30) < 0.1
+                      and abs(work.Shapes(name).Width - 303) < 0.1
+                      and work.Shapes(name).Placement == 2
+                      and phrase in str(work.Range(f"F{row}").Value2)
+                      and work.Range(f"E{row}:F{row}").VerticalAlignment == -4108
+                      for name, row, phrase in steps))
+
+            check_step_layout("seven_step_notes_and_buttons_aligned")
+            work.Unprotect("workday-ui")
+            input_height = work.Rows(3).RowHeight
+            work.Rows(3).RowHeight = input_height + 3.75
+            check_step_layout("step_buttons_follow_input_row_height_without_resizing")
+            work.Rows(3).RowHeight = input_height
             original_values = {a: work.Range(a).Value2 for a in ("B3", "B5", "B6", "D3", "D5", "D6")}
             run("ApplyWorkbookProtection")
             check("activation_preserves_work_values", all(work.Range(a).Value2 == v for a, v in original_values.items()))
@@ -202,6 +223,7 @@ def main():
             book = excel.Workbooks.Open(str(copy), 0, False)
             work = book.Worksheets("작업")
             check("reopen_defaults_all_six", all(work.Range(a).Value2 == "선택" for a in original_values))
+            check_step_layout("reopen_preserves_step_alignment")
             check("reopen_defaults_all_six_controls", all(work.Shapes("select_" + a).ControlFormat.ListIndex == 1
                                                          for a in original_values))
             check("reopen_settings_remain_unchanged", book.Worksheets("설정").UsedRange.Value2 == settings_after)

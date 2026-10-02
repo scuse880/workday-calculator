@@ -1,8 +1,10 @@
 """Verify the personnel form in a disposable Excel copy with 77 synthetic employees.
 
 Runs production form code, full VBA compilation, filtering, duplicate identities,
-save/clear, native mouse-wheel input, registered-row clicks and hook cleanup.
+save/clear, native mouse-wheel input, registered-row clicks, hook cleanup and layout.
 Only test accessors are appended in the copy. Requires Windows, Excel and pywin32.
+Use --layout-only for compilation, initial content and geometry checks without
+native mouse input.
 """
 
 import argparse
@@ -88,6 +90,63 @@ def control_point(dialog, hwnd, control, x_offset=None, y_offset=None):
     )
 
 
+def check_form_layout(dialog, check):
+    # Freeze the existing layout: only the form's lower edge may grow for the fix.
+    expected = {
+        "lblTitle": (17, 10, 720, 24),
+        "lblEmployee": (17, 41, 72, 18),
+        "cmbEmployee": (96, 39, 420, 22),
+        "lblNotice": (17, 69, 720, 19),
+        "lblInstructions": (17, 90, 720, 32),
+        "lblMonth": (19, 130, 264, 19),
+        "lblRegistered": (307, 130, 420, 20),
+        "lstRegistered": (307, 154, 420, dialog.AuditRegisteredBaselineHeight()),
+        "lblSelection": (307, 287, 420, 18),
+        "lblStatus": (307, 307, 420, 35),
+        "cmdSave": (445, 350, 90, 29),
+        "cmdClear": (541, 350, 90, 29),
+        "cmdClose": (637, 350, 90, 29),
+    }
+    for column in range(7):
+        expected[f"lblWeek{column}"] = (19 + column * 38, 151, 36, 17)
+    # August 2026 spans six calendar rows and exercises the lowest date buttons.
+    for day in range(1, 32):
+        row, column = divmod(6 + day - 1, 7)
+        expected[f"day{day}"] = (19 + column * 38, 173 + row * 29, 36, 27)
+    actual = {}
+    clipped = []
+    for control in dialog.Controls:
+        left, top, width, height = [
+            round(float(getattr(control, prop)), 2)
+            for prop in ("Left", "Top", "Width", "Height")
+        ]
+        actual[control.Name] = (left, top, width, height)
+        if (left < 0 or top < 0 or left + width > dialog.InsideWidth + 0.1
+                or top + height > dialog.InsideHeight + 0.1):
+            clipped.append(control.Name)
+    check("form_width_preserved", dialog.Width, 760)
+    # MSForms can quantize geometry when controls are first displayed.
+    geometry_tolerance = 0.5
+    mismatches = {
+        name: {"actual": actual.get(name), "expected": expected.get(name)}
+        for name in sorted(actual.keys() | expected.keys())
+        if (name not in actual or name not in expected
+            or any(abs(observed - baseline) > geometry_tolerance
+                   for observed, baseline in zip(actual[name], expected[name])))
+    }
+    check("control_layout_preserved", not mismatches, True, mismatches=mismatches,
+          controls_checked=len(expected), registered_baseline_height=expected["lstRegistered"][3],
+          tolerance_points=geometry_tolerance)
+    check("controls_inside_client_area", clipped, [],
+          inside_width=dialog.InsideWidth, inside_height=dialog.InsideHeight)
+    bottom_margin = min(
+        dialog.InsideHeight - dialog.Controls(name).Top - dialog.Controls(name).Height
+        for name in ("cmdSave", "cmdClear", "cmdClose")
+    )
+    check("action_button_bottom_margin", bottom_margin >= 11.9, True,
+          margin_points=bottom_margin)
+
+
 def focus_form(hwnd):
     current_thread = ctypes.windll.kernel32.GetCurrentThreadId()
     foreground_thread = user32.GetWindowThreadProcessId(user32.GetForegroundWindow(), None)
@@ -168,6 +227,25 @@ End Function
 '''
 
 FORM_AUDIT = '''
+Public Function AuditRegisteredBaselineHeight() As Single
+    Dim baseline As MSForms.ListBox
+    ' Original creation order: IntegralHeight is True when Height is assigned.
+    ' Compare the same Excel runtime's row rounding without changing the live list.
+    Set baseline = Me.Controls.Add("Forms.ListBox.1", "auditRegisteredBaseline", False)
+    With baseline
+        .Left = 307
+        .Top = 154
+        .Width = 420
+        .Height = 125
+        .ColumnCount = 2
+        .ColumnWidths = "165 pt;235 pt"
+        .Font.name = "맑은 고딕"
+        .Font.Size = 9
+        .IntegralHeight = False
+        AuditRegisteredBaselineHeight = .Height
+    End With
+    Me.Controls.Remove "auditRegisteredBaseline"
+End Function
 Public Function AuditSelectedIndex() As Long
     AuditSelectedIndex = mSelectedEmployeeIndex
 End Function
@@ -225,6 +303,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workbook", type=Path, default=ROOT / "workbook" / "근무일수계산.xlsm")
     parser.add_argument("--report", type=Path, default=ROOT / "scripts" / "test-personnel-ui-report.json")
+    parser.add_argument("--layout-only", action="store_true",
+                        help="Check compilation, initial content and layout through COM; skip native input")
     args = parser.parse_args()
     stage = Path(tempfile.mkdtemp(prefix="workday-personnel-ui-"))
     copy = stage / "personnel-ui.xlsm"
@@ -272,12 +352,16 @@ def main():
         pump()
         employee = dialog.Controls("cmbEmployee")
         registered = dialog.Controls("lstRegistered")
-        hwnd = find_form(excel.Hwnd)
+        if not args.layout_only:
+            hwnd = find_form(excel.Hwnd)
         check("form_caption", dialog.Caption, "인사변동자 등록")
+        check_form_layout(dialog, check)
         check("month_title", dialog.Controls("lblTitle").Caption, "2026년 8월")
         check("dropdown_rows", employee.ListRows, 25)
         check("initial_employees", employee.ListCount, 77)
         check("initial_registered", registered.ListCount, 73)
+        if args.layout_only:
+            return 0  # The shared finally block still writes the report and closes Excel.
         check("hook_installed", run("PersonnelMouseWheel.AuditWheelInstalled"), True)
         employee.SetFocus()
         employee.Value = "기"

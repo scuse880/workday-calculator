@@ -1,0 +1,138 @@
+{
+  "scope": {
+    "unexpected_cell_changes": {},
+    "unexpected_row_changes": {},
+    "other_layout_preserved": true,
+    "passed": true
+  },
+  "preservation": {
+    "changed_cells": {
+      "작업": [
+        [
+          13,
+          6
+        ],
+        [
+          15,
+          6
+        ],
+        [
+          17,
+          6
+        ],
+        [
+          19,
+          6
+        ],
+        [
+          21,
+          5
+        ],
+        [
+          21,
+          6
+        ]
+      ]
+    },
+    "column_widths_preserved": true,
+    "changed_modules": [
+      "frmPersonnelChange",
+      "main_초과근무월별집계"
+    ],
+    "form_before": {
+      "width": 760.0,
+      "height": 405.0,
+      "inside_height": 375.75
+    },
+    "form_after": {
+      "width": 760.0,
+      "height": 421.25,
+      "inside_height": 392.25
+    },
+    "form_controls_exactly_preserved": true,
+    "button_sizes_and_actions_preserved": true,
+    "dropdown_geometry_preserved": true
+  },
+  "personnel_layout": [
+    {
+      "name": "full_compile",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "setup",
+      "actual": "ok",
+      "expected": "ok",
+      "passed": true
+    },
+    {
+      "name": "form_caption",
+      "actual": "인사변동자 등록",
+      "expected": "인사변동자 등록",
+      "passed": true
+    },
+    {
+      "name": "form_width_preserved",
+      "actual": 760.0,
+      "expected": 760,
+      "passed": true
+    },
+    {
+      "name": "control_layout_preserved",
+      "actual": true,
+      "expected": true,
+      "passed": true,
+      "mismatches": {},
+      "controls_checked": 51,
+      "registered_baseline_height": 115.55000305175781,
+      "tolerance_points": 0.5
+    },
+    {
+      "name": "controls_inside_client_area",
+      "actual": [],
+      "expected": [],
+      "passed": true,
+      "inside_width": 747.75,
+      "inside_height": 392.25
+    },
+    {
+      "name": "action_button_bottom_margin",
+      "actual": true,
+      "expected": true,
+      "passed": true,
+      "margin_points": 13.25
+    },
+    {
+      "name": "month_title",
+      "actual": "2026년 8월",
+      "expected": "2026년 8월",
+      "passed": true
+    },
+    {
+      "name": "dropdown_rows",
+      "actual": 25,
+      "expected": 25,
+      "passed": true
+    },
+    {
+      "name": "initial_employees",
+      "actual": 77,
+      "expected": 77,
+      "passed": true
+    },
+    {
+      "name": "initial_registered",
+      "actual": 73,
+      "expected": 73,
+      "passed": true
+    }
+  ],
+  "verification": {
+    "source_checks": 112,
+    "protection_checks": 72,
+    "personnel_layout_checks": 11,
+    "visual_review": "Excel worksheet and personnel form screenshots reviewed",
+    "source_files_unchanged": true
+  }
+}

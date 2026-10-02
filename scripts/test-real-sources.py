@@ -77,10 +77,9 @@ def adapt_source(text: str, name: str) -> str:
     text = re.sub(r"\bMsgBox\b", "AuditMsgBox", text)
     if name == "main_초과근무월별집계":
         text, count = re.subn(
-            r"Public Function SelectInputWorkbook\(.*?\r?\nEnd Function",
-            "Public Function SelectInputWorkbook(ByRef openedByCode As Boolean) As Workbook\n"
-            "    Set SelectInputWorkbook = AuditOpenInput(openedByCode)\nEnd Function",
-            text, count=1, flags=re.S,
+            r"selected = Application\.GetOpenFilename\([^\r\n]+\)",
+            "selected = AuditPickInputPath()",
+            text, count=1,
         )
         if count != 1:
             raise RuntimeError("File dialog adapter could not find its production boundary")
@@ -191,11 +190,10 @@ Public Sub AuditClearMessages()
     Set AuditMessages = New Collection
 End Sub
 
-Public Function AuditOpenInput(ByRef openedByCode As Boolean) As Workbook
-    openedByCode = False
+Public Function AuditPickInputPath() As Variant
+    AuditPickInputPath = False
     If Len(AuditInputPath) = 0 Then Exit Function
-    Set AuditOpenInput = Application.Workbooks.Open(AuditInputPath, UpdateLinks:=0, ReadOnly:=True, AddToMru:=False)
-    openedByCode = True
+    AuditPickInputPath = AuditInputPath
 End Function
 
 Public Sub AuditAssignNeis(ByVal employees As Collection)
@@ -206,8 +204,11 @@ Public Sub AuditAssignNeis(ByVal employees As Collection)
     Next i
 End Sub
 
-Public Sub AuditConfigure(ByVal path As String)
+Public Sub AuditConfigure(ByVal path As String, Optional ByVal cancelNeis As Boolean = False, _
+                          Optional ByVal cancelTrip As Boolean = False)
     AuditInputPath = path
+    AuditCancelNeis = cancelNeis
+    AuditCancelTrip = cancelTrip
     AuditClearMessages
 End Sub
 
@@ -589,26 +590,75 @@ def main() -> None:
                 if not success:
                     raise AssertionError(label)
 
+            def capture_focus():
+                window = excel.ActiveWindow
+                return {
+                    "workbook": excel.ActiveWorkbook.FullName,
+                    "sheet": excel.ActiveSheet.Name,
+                    "selection": excel.Selection.Address,
+                    "window": window.Hwnd,
+                    "scroll_row": window.ScrollRow,
+                    "scroll_column": window.ScrollColumn,
+                    "zoom": window.Zoom,
+                }
+
+            def run_import_with_focus(label, macro, sheet_name="작업"):
+                # Exercise the real open/close implementation with activation events
+                # enabled, while adapting only the file-picker and modal dialogs.
+                excel.EnableEvents = True
+                book.Activate()
+                book.Worksheets(sheet_name).Activate()
+                book.Worksheets(sheet_name).Range("A1").Select()
+                excel.ActiveWindow.ScrollRow = 2
+                excel.ActiveWindow.ScrollColumn = 1
+                before = capture_focus()
+                run(macro)
+                after = capture_focus()
+                check(label, after == before and excel.EnableEvents,
+                      active_sheet=after["sheet"], view_unchanged=after == before)
+                excel.EnableEvents = False
+
             if "main_시트보호" in components:
                 run("ApplyWorkbookProtection")
             run("AuditInit")
             for scenario in range(1, 14):
                 check(f"display_units_settings_regression_{scenario:02}", run("AuditBaseSettingsRegression", scenario))
             run("AuditConfigure", str(missing_birth))
-            run("LoadOvertimeEmployees")
+            run_import_with_focus("validation_failure_preserves_import_focus", "LoadOvertimeEmployees")
             check("missing_duplicate_birthdates_rejected", run("AuditEmployeeCount") == 0 and run("AuditHasMessage", "동명이인"))
             run("AuditConfigure", str(overtime))
-            run("LoadOvertimeEmployees")
+            run_import_with_focus("overtime_import_preserves_focus", "LoadOvertimeEmployees")
             employee_count = int(run("AuditEmployeeCount"))
             check("overtime_actual_fixture", employee_count == 77, employees=employee_count)
+            run("AuditConfigure", str(overtime), True)
+            run_import_with_focus("cancelled_neis_dialog_preserves_focus", "LoadOvertimeEmployees")
+            check("cancelled_neis_dialog_preserves_employees", run("AuditEmployeeCount") == employee_count)
             run("AuditConfigure", str(work_status))
-            run("LoadWorkStatusRecords")
+            run_import_with_focus("work_status_import_preserves_focus", "LoadWorkStatusRecords")
             work_count = int(run("AuditRecordCount", "WorkStatus"))
             check("work_status_actual_fixture", work_count == 206, records=work_count)
             run("AuditConfigure", str(trip))
-            run("LoadTripRecords")
+            run_import_with_focus("trip_import_preserves_focus", "LoadTripRecords")
             trip_count = int(run("AuditRecordCount", "Trip"))
             check("trip_actual_fixture", trip_count == 110, records=trip_count)
+            run("AuditConfigure", str(trip), False, True)
+            run_import_with_focus("cancelled_trip_dialog_preserves_focus", "LoadTripRecords")
+            check("cancelled_trip_dialog_preserves_records", run("AuditRecordCount", "Trip") == trip_count)
+            for macro in ("LoadOvertimeEmployees", "LoadWorkStatusRecords", "LoadTripRecords"):
+                run("AuditConfigure", "")
+                run_import_with_focus(f"cancelled_picker_preserves_focus_{macro}", macro)
+            run("AuditConfigure", str(stage / "missing-input.xlsx"))
+            run_import_with_focus("failed_file_open_preserves_focus", "LoadWorkStatusRecords")
+            check("failed_file_open_preserves_records", run("AuditRecordCount", "WorkStatus") == work_count)
+            preopened = excel.Workbooks.Open(str(work_status), 0, True)
+            try:
+                run("AuditConfigure", str(work_status))
+                run_import_with_focus("already_open_input_preserves_focus", "LoadWorkStatusRecords")
+                check("already_open_input_remains_open", preopened.Name == work_status.name)
+            finally:
+                preopened.Close(False)
+            run("AuditConfigure", str(work_status))
+            run_import_with_focus("import_preserves_non_work_caller_sheet", "LoadWorkStatusRecords", "방학중근무")
 
             # Pure and validation cases use the same production public functions.
             for scenario in range(1, 51):
@@ -636,20 +686,23 @@ def main() -> None:
             check("cancelled_file_preserves_work_status", run("AuditRecordCount", "WorkStatus") == work_count)
 
             # A completed row alone reaches interval parsing; near matches are ignored.
-            test_work = stage / "work-boundaries.xlsx"
+            test_work = stage / "work-boundaries-1.xlsx"
             run("AuditWriteWorkFixture", str(test_work), 1)
             run("AuditConfigure", str(test_work))
             run("LoadWorkStatusRecords")
             check("non_exact_complete_rows_skipped_before_parsing", run("AuditRecordCount", "WorkStatus") == 1)
+            test_work = stage / "work-boundaries-3.xlsx"
             run("AuditWriteWorkFixture", str(test_work), 3)
             run("AuditConfigure", str(test_work))
             run("LoadWorkStatusRecords")
             check("malformed_completed_period_preserves_previous", run("AuditRecordCount", "WorkStatus") == 1 and run("AuditHasMessage", "기존 근무상황 기록은 유지"))
+            test_work = stage / "work-boundaries-2.xlsx"
             run("AuditWriteWorkFixture", str(test_work), 2)
             run("AuditConfigure", str(test_work))
             run("LoadWorkStatusRecords")
             check("four_identity_mismatches_one_person_popup", run("AuditRecordCount", "WorkStatus") == 0 and run("AuditMessageCount") == 2 and all(run("AuditHasMessage", f"({row}행)") for row in range(2, 6)), popups=int(run("AuditMessageCount")))
             check("identity_warning_has_neis_label_without_candidate_roster", run("AuditHasMessage", "나이스 개인번호:") and not run("AuditHasMessage", "원본 개인번호") and not run("AuditHasMessage", "등록된 동명이인:"))
+            test_work = stage / "work-boundaries-4.xlsx"
             run("AuditWriteWorkFixture", str(test_work), 4)
             run("AuditConfigure", str(test_work))
             run("LoadWorkStatusRecords")
